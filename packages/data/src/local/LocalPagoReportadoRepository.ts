@@ -32,6 +32,13 @@ export class LocalPagoReportadoRepository implements IPagoReportadoRepository {
   }
 
   async create(data: Omit<IPagoReportado, 'IdPago' | 'Fecha_Reporte'>): Promise<number> {
+    const dup = await this.findByReferencia(data.IdCondominio, data.Referencia_Bancaria);
+    if (dup) {
+      const err = new Error('Duplicate entry') as Error & { errno: number; code: string };
+      err.errno = 1062;
+      err.code = 'ER_DUP_ENTRY';
+      throw err;
+    }
     const id = this.store.nextIds.pago++;
     const now = new Date();
     const pago: IPagoReportado = {
