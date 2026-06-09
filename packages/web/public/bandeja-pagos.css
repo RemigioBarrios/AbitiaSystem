@@ -1,0 +1,533 @@
+/* ==========================================================================
+   ABITIA — BANDEJA DE VERIFICACIÓN DE PAGOS
+   High-Density UI / Desktop-App Style — Vanilla CSS
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   RESET & BASE
+   -------------------------------------------------------------------------- */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, 'Segoe UI', Roboto, 'Liberation Mono', monospace;
+  font-size: 12px;
+  background: #0f1923;
+  color: #c8d6e5;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+a { color: #48dbfb; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* --------------------------------------------------------------------------
+   TOOLBAR (Desktop App Title Bar)
+   -------------------------------------------------------------------------- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+  background: #1a2a3a;
+  border-bottom: 1px solid #2a3a4a;
+  min-height: 32px;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo {
+  font-weight: 900;
+  font-size: 14px;
+  color: #48dbfb;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.title {
+  font-size: 11px;
+  color: #576574;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.user-label {
+  font-size: 11px;
+  color: #8395a7;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: #0f1923;
+  border: 1px solid #2a3a4a;
+  max-width: 200px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.btn-tool {
+  font-size: 11px;
+  padding: 3px 10px;
+  background: #1e2d3d;
+  color: #8395a7;
+  border: 1px solid #2a3a4a;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-tool:hover {
+  background: #2a3a4a;
+  color: #c8d6e5;
+}
+
+.sync-indicator {
+  position: relative;
+}
+
+.sync-indicator.syncing {
+  animation: spin 0.8s linear infinite;
+  color: #48dbfb;
+}
+
+@keyframes spin {
+  from { opacity: 1; }
+  50%  { opacity: 0.4; }
+  to   { opacity: 1; }
+}
+
+/* --------------------------------------------------------------------------
+   STATUS BAR
+   -------------------------------------------------------------------------- */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 8px;
+  background: #141e2a;
+  border-bottom: 1px solid #1e2d3d;
+  font-size: 11px;
+  color: #576574;
+  min-height: 22px;
+  flex-shrink: 0;
+}
+
+.record-count {
+  font-weight: 600;
+  color: #8395a7;
+}
+
+.status-msg {
+  color: #48dbfb;
+}
+
+.last-sync {
+  font-size: 10px;
+}
+
+/* --------------------------------------------------------------------------
+   LOGIN MODAL
+   -------------------------------------------------------------------------- */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 10, 18, 0.85);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal-box {
+  background: #1a2a3a;
+  border: 1px solid #2a3a4a;
+  border-radius: 4px;
+  width: 340px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+
+.modal-header {
+  padding: 8px 12px;
+  border-bottom: 1px solid #2a3a4a;
+  background: #141e2a;
+  border-radius: 4px 4px 0 0;
+}
+
+.modal-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #c8d6e5;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.modal-body {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.field label {
+  font-size: 10px;
+  color: #576574;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.field input {
+  font-size: 13px;
+  padding: 5px 8px;
+  background: #0f1923;
+  color: #c8d6e5;
+  border: 1px solid #2a3a4a;
+  border-radius: 3px;
+  font-family: inherit;
+  outline: none;
+}
+
+.field input:focus {
+  border-color: #48dbfb;
+  box-shadow: 0 0 0 1px rgba(72, 219, 251, 0.15);
+}
+
+.login-error {
+  display: none;
+  font-size: 11px;
+  color: #ff6b6b;
+  padding: 4px 8px;
+  background: rgba(255, 107, 107, 0.08);
+  border: 1px solid rgba(255, 107, 107, 0.15);
+  border-radius: 3px;
+}
+
+.login-error.active {
+  display: block;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  padding-top: 4px;
+}
+
+.btn-primary {
+  font-size: 12px;
+  padding: 5px 16px;
+  background: #2a4a6a;
+  color: #c8d6e5;
+  border: 1px solid #3a5a7a;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-primary:hover {
+  background: #3a5a7a;
+}
+
+/* --------------------------------------------------------------------------
+   TABLE SHELL (Desktop DataGrid)
+   -------------------------------------------------------------------------- */
+.table-shell {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex: 1;
+  overflow: auto;
+}
+
+/* Thin scrollbar for desktop feel */
+.table-container::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: #0f1923;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: #2a3a4a;
+  border-radius: 2px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: #3a5a6a;
+}
+
+/* --------------------------------------------------------------------------
+   DATA TABLE (High-Density)
+   -------------------------------------------------------------------------- */
+#pagosTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  min-width: 900px;
+}
+
+/* Column widths */
+.col-fecha     { width: 120px; }
+.col-propiedad { width: 95px; }
+.col-ref       { width: 160px; }
+.col-forma     { width: 105px; }
+.col-monto     { width: 90px; }
+.col-comp      { width: 100px; }
+.col-acciones  { width: 155px; }
+
+/* Header */
+#pagosTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #1a2a3a;
+  color: #576574;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 5px 8px;
+  text-align: left;
+  border-bottom: 2px solid #2a3a4a;
+  user-select: none;
+  white-space: nowrap;
+}
+
+#pagosTable thead th:last-child {
+  text-align: center;
+}
+
+/* Body rows */
+#pagosTable tbody td {
+  padding: 4px 8px;
+  font-size: 12px;
+  border-bottom: 1px solid #141e2a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Zebra striping */
+#pagosTable tbody tr:nth-child(even) td {
+  background: #111d28;
+}
+
+/* Hover highlight */
+#pagosTable tbody tr:hover td {
+  background: #1a2a3a;
+}
+
+/* Empty state */
+.empty-row td {
+  text-align: center !important;
+  color: #576574;
+  font-style: italic;
+  padding: 32px 8px !important;
+  font-size: 13px !important;
+}
+
+/* Monto column — right-aligned, tabular numerals */
+#pagosTable tbody td:nth-child(5) {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+/* Comprobante link */
+.comprobante-link {
+  font-size: 11px;
+  padding: 1px 6px;
+  background: rgba(72, 219, 251, 0.08);
+  border: 1px solid rgba(72, 219, 251, 0.15);
+  border-radius: 3px;
+  color: #48dbfb;
+  text-decoration: none;
+}
+
+.comprobante-link:hover {
+  background: rgba(72, 219, 251, 0.15);
+  text-decoration: none;
+}
+
+/* Acciones column — centered */
+#pagosTable tbody td:last-child {
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   ACTION BUTTONS (Compact Desktop Style)
+   -------------------------------------------------------------------------- */
+.acciones {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.btn-approve, .btn-reject {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 2px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: inherit;
+  border: 1px solid;
+  outline: none;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.btn-approve {
+  background: #0d2818;
+  color: #5cdb5c;
+  border-color: #1a4a2a;
+}
+
+.btn-approve:hover {
+  background: #1a4a2a;
+  border-color: #2a6a3a;
+}
+
+.btn-approve:active {
+  background: #0d1a10;
+}
+
+.btn-reject {
+  background: #2a1010;
+  color: #ff6b6b;
+  border-color: #4a1a1a;
+}
+
+.btn-reject:hover {
+  background: #4a1a1a;
+  border-color: #6a2a2a;
+}
+
+.btn-reject:active {
+  background: #1a0a0a;
+}
+
+/* --------------------------------------------------------------------------
+   ROW REMOVAL TRANSITION
+   -------------------------------------------------------------------------- */
+#pagosTable tbody tr {
+  transition: opacity 0.25s ease, max-height 0.3s ease;
+  max-height: 60px;
+  overflow: hidden;
+}
+
+#pagosTable tbody tr.removing {
+  opacity: 0;
+  max-height: 0;
+  pointer-events: none;
+}
+
+#pagosTable tbody tr.removing td {
+  padding-top: 0;
+  padding-bottom: 0;
+  border-bottom-width: 0;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   TOAST NOTIFICATIONS (Non-intrusive)
+   -------------------------------------------------------------------------- */
+.toast-container {
+  position: fixed;
+  top: 40px;
+  right: 12px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.toast {
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 3px;
+  border: 1px solid;
+  font-weight: 500;
+  pointer-events: auto;
+  animation: toastIn 0.25s ease;
+  max-width: 380px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.toast-success {
+  background: #0d2818;
+  color: #5cdb5c;
+  border-color: #1a4a2a;
+}
+
+.toast-error {
+  background: #2a1010;
+  color: #ff6b6b;
+  border-color: #4a1a1a;
+}
+
+.toast-info {
+  background: #1a2a3a;
+  color: #48dbfb;
+  border-color: #2a3a4a;
+}
+
+.toast.fade-out {
+  animation: toastOut 0.3s ease forwards;
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVE FALLBACK (minimal — this is desktop-first)
+   -------------------------------------------------------------------------- */
+@media (max-width: 700px) {
+  .toolbar-left { gap: 6px; }
+  .title { display: none; }
+  .table-container { overflow-x: auto; }
+  #pagosTable { min-width: auto; }
+}

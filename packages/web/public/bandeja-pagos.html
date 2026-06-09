@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Abitia — Bandeja de Verificación de Pagos</title>
+  <link rel="stylesheet" href="bandeja-pagos.css" />
+</head>
+<body>
+
+  <!-- ========================================================================= -->
+  <!-- TOOLBAR SUPERIOR (Desktop-App Style)                                      -->
+  <!-- ========================================================================= -->
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <span class="logo">ABITIA</span>
+      <span class="title">Bandeja de Verificación de Pagos</span>
+    </div>
+    <div class="toolbar-right">
+      <span id="userLabel" class="user-label">—</span>
+      <button id="refreshBtn" class="btn-tool">&#x21bb; Refrescar</button>
+      <button id="syncBtn" class="btn-tool sync-indicator" title="Sincronizar ahora">&#x21bb; Sinc.</button>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- BARRA DE ESTADO (Alta Densidad)                                          -->
+  <!-- ========================================================================= -->
+  <div class="status-bar">
+    <span id="recordCount" class="record-count">—</span>
+    <span id="statusMsg" class="status-msg"></span>
+    <span id="lastSync" class="last-sync"></span>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- LOGIN MODAL                                                               -->
+  <!-- ========================================================================= -->
+  <div id="loginModal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span class="modal-title">Acceso Administrador</span>
+      </div>
+      <form id="loginForm" class="modal-body" autocomplete="off">
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" placeholder="admin@casa10.com" required autofocus />
+        </div>
+        <div class="field">
+          <label for="loginPassword">Contraseña</label>
+          <input type="password" id="loginPassword" placeholder="••••••••" required />
+        </div>
+        <div id="loginError" class="login-error"></div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-primary">Ingresar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TABLA DE ALTA DENSIDAD (Desktop-App DataGrid)                            -->
+  <!-- ========================================================================= -->
+  <div class="table-shell">
+    <div class="table-container">
+      <table id="pagosTable">
+        <thead>
+          <tr>
+            <th class="col-fecha">Fecha Reporte</th>
+            <th class="col-propiedad">Nro. Propiedad</th>
+            <th class="col-ref">Referencia Bancaria</th>
+            <th class="col-forma">Forma de Pago</th>
+            <th class="col-monto">Monto</th>
+            <th class="col-comp">Comprobante</th>
+            <th class="col-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="pagosBody">
+          <tr class="empty-row">
+            <td colspan="7">Inicie sesión para cargar la bandeja de pagos.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- TOAST CONTAINER (notificaciones efímeras)                                -->
+  <!-- ========================================================================= -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script src="bandeja-pagos.js"></script>
+</body>
+</html>
