@@ -2,6 +2,7 @@ import { injectable, inject } from 'tsyringe';
 import { ICuentaCorrientePropiedad, ICuentaCorrienteRepository } from '@abitia/core';
 import { MySQLConnection } from './connection';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import type { PoolConnection } from 'mysql2/promise';
 
 @injectable()
 export class MySQLCuentaCorrienteRepository implements ICuentaCorrienteRepository {
@@ -30,16 +31,19 @@ export class MySQLCuentaCorrienteRepository implements ICuentaCorrienteRepositor
     return rows[0] ? Number(rows[0].Saldo_Resultante) : 0;
   }
 
-  async create(data: Omit<ICuentaCorrientePropiedad, 'IdMovimiento'>): Promise<number> {
+  async create(data: Omit<ICuentaCorrientePropiedad, 'IdMovimiento'>, connection?: PoolConnection): Promise<number> {
     const fields = Object.keys(data);
     const values = Object.values(data);
     const placeholders = fields.map(() => '?').join(', ');
     const columns = fields.map((f) => f).join(', ');
+    const sql = `INSERT INTO CuentaCorrientePropiedad (${columns}) VALUES (${placeholders})`;
 
-    const [result] = await this.connection.getPool().execute<ResultSetHeader>(
-      `INSERT INTO CuentaCorrientePropiedad (${columns}) VALUES (${placeholders})`,
-      values,
-    );
+    let result: ResultSetHeader;
+    if (connection) {
+      [result] = await connection.execute<ResultSetHeader>(sql, values);
+    } else {
+      [result] = await this.connection.getPool().execute<ResultSetHeader>(sql, values);
+    }
     return result.insertId;
   }
 

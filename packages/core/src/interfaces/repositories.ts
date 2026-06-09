@@ -62,5 +62,5 @@ export interface IPagoReportadoRepository {
 export interface ICuentaCorrienteRepository {
   findByPropiedad(idCondominio: number, idPropiedad: number): Promise<ICuentaCorrientePropiedad[]>;
   getSaldoActual(idCondominio: number, idPropiedad: number): Promise<number>;
-  create(data: Omit<ICuentaCorrientePropiedad, 'IdMovimiento'>): Promise<number>;
+  create(data: Omit<ICuentaCorrientePropiedad, 'IdMovimiento'>, connection?: unknown): Promise<number>;
 }

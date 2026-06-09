@@ -58,6 +58,7 @@ export interface ILedgerService {
     idRecibo: number,
     descripcion: string,
     monto: number,
+    connection?: unknown,
   ): Promise<void>;
 
   registrarPagoAplicado(
@@ -66,6 +67,7 @@ export interface ILedgerService {
     idPago: number,
     descripcion: string,
     monto: number,
+    connection?: unknown,
   ): Promise<void>;
 
   registrarNotaCredito(
@@ -74,6 +76,7 @@ export interface ILedgerService {
     idReferencia: number,
     descripcion: string,
     monto: number,
+    connection?: unknown,
   ): Promise<void>;
 
   registrarNotaDebito(
@@ -82,6 +85,7 @@ export interface ILedgerService {
     idReferencia: number,
     descripcion: string,
     monto: number,
+    connection?: unknown,
   ): Promise<void>;
 
   getSaldoActual(idCondominio: number, idPropiedad: number): Promise<number>;
@@ -94,6 +98,19 @@ export interface PagoVerificationInput {
   estatus: number;
   idUsuarioVerifica: number;
   motivoRechazo?: string;
+}
+
+export interface AprobarPagoInput {
+  idCondominio: number;
+  idPago: number;
+  idUsuarioVerifica: number;
+}
+
+export interface RechazarPagoInput {
+  idCondominio: number;
+  idPago: number;
+  idUsuarioVerifica: number;
+  motivoRechazo: string;
 }
 
 export interface ReportarPagoInput {
@@ -111,7 +128,8 @@ export interface ReportarPagoInput {
 
 export interface IPagoService {
   reportarPago(data: ReportarPagoInput): Promise<number>;
-  verificarPago(input: PagoVerificationInput): Promise<void>;
+  aprobarPago(input: AprobarPagoInput): Promise<void>;
+  rechazarPago(input: RechazarPagoInput): Promise<void>;
   getBandejaVerificacion(idCondominio: number): Promise<IPagoReportado[]>;
 }
 

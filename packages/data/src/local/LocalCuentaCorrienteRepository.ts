@@ -31,7 +31,7 @@ export class LocalCuentaCorrienteRepository implements ICuentaCorrienteRepositor
     return lastEntry?.Saldo_Resultante ?? 0;
   }
 
-  async create(data: Omit<ICuentaCorrientePropiedad, 'IdMovimiento'>): Promise<number> {
+  async create(data: Omit<ICuentaCorrientePropiedad, 'IdMovimiento'>, _connection?: unknown): Promise<number> {
     const id = this.store.nextIds.movimiento++;
     const movimiento: ICuentaCorrientePropiedad = {
       ...data,

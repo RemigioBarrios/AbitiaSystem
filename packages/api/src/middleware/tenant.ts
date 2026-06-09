@@ -1,74 +1,100 @@
 import { Request, Response, NextFunction } from 'express';
-import { container } from 'tsyringe';
-import { ITenantResolutionService, HostType } from '@abitia/core';
+import { MySQLConnection } from '@abitia/data';
+import type { RowDataPacket } from 'mysql2';
 
 declare global {
   namespace Express {
     interface Request {
+      tenantId?: number;
       idCondominio?: number;
-      tenantSlug?: string;
-      tenantNombre?: string;
+      hostType?: 'public' | 'global' | 'tenant' | 'unknown';
       idUsuario?: number;
-      hostType?: HostType;
-      isPublicHost?: boolean;
-      isGlobalAppHost?: boolean;
-      isTenantHost?: boolean;
     }
   }
 }
 
-export function hostClassifierMiddleware(req: Request, _res: Response, next: NextFunction): void {
-  const host = req.headers.host || req.hostname || '';
-  const tenantService = container.resolve<ITenantResolutionService>('ITenantResolutionService');
-  const classification = tenantService.classifyHost(host);
+const TENANT_CACHE = new Map<string, number>();
 
-  req.hostType = classification.type;
-  req.isPublicHost = classification.type === HostType.PUBLIC;
-  req.isGlobalAppHost = classification.type === HostType.GLOBAL_APP;
-  req.isTenantHost = classification.type === HostType.TENANT;
+function classifyHost(host: string): { type: 'public' | 'global' | 'tenant' | 'unknown'; slug: string | null } {
+  const clean = host.replace(/:\d+$/, '').toLowerCase();
 
-  next();
+  if (clean === 'abitia.co' || clean === 'www.abitia.co') {
+    return { type: 'public', slug: null };
+  }
+
+  if (clean === 'app.abitia.app' || clean === 'abitia.app') {
+    return { type: 'global', slug: null };
+  }
+
+  if (clean.endsWith('.abitia.app')) {
+    const slug = clean.slice(0, clean.length - 10);
+    if (slug && slug !== 'app' && slug !== 'www') {
+      return { type: 'tenant', slug };
+    }
+  }
+
+  if (clean.endsWith('.localhost')) {
+    const slug = clean.slice(0, clean.length - 10);
+    if (slug) return { type: 'tenant', slug };
+  }
+
+  if (clean === 'localhost' || clean === '127.0.0.1') {
+    return { type: 'global', slug: null };
+  }
+
+  return { type: 'unknown', slug: null };
 }
 
-export function tenantResolutionMiddleware(
-  req: Request,
-  res: Response,
-  next: NextFunction,
-): void {
-  if (req.isPublicHost) {
-    next();
-    return;
-  }
+export function multiTenantMiddleware(connection: MySQLConnection) {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const host = req.headers.host || req.hostname || '';
+      const { type, slug } = classifyHost(host);
 
-  if (req.isGlobalAppHost) {
-    next();
-    return;
-  }
+      req.hostType = type;
 
-  if (!req.isTenantHost) {
-    res.status(400).json({ error: 'Host no reconocido' });
-    return;
-  }
+      if (type === 'public' || type === 'global') {
+        return next();
+      }
 
-  const host = req.headers.host || req.hostname || '';
-  const tenantService = container.resolve<ITenantResolutionService>('ITenantResolutionService');
-
-  tenantService.resolveFromHost(host)
-    .then((resolved) => {
-      if (!resolved) {
-        res.status(404).json({ error: 'Condominio no encontrado para el subdominio especificado' });
+      if (type === 'unknown') {
+        res.status(400).json({
+          error: 'Host no reconocido',
+          hint: 'Use abitia.co, app.abitia.app, o [slug].abitia.app',
+        });
         return;
       }
 
-      req.idCondominio = resolved.idCondominio;
-      req.tenantSlug = resolved.slug;
-      req.tenantNombre = resolved.nombre;
+      if (!slug) {
+        res.status(400).json({ error: 'Subdominio no especificado' });
+        return;
+      }
+
+      let idCondominio = TENANT_CACHE.get(slug);
+
+      if (idCondominio === undefined) {
+        const [rows] = await connection.getPool().execute<RowDataPacket[]>(
+          'SELECT IdCondominio FROM Condominio WHERE Subdominio_Slug = ? LIMIT 1',
+          [slug],
+        );
+
+        if (rows.length === 0) {
+          res.status(404).json({ error: 'Condominio no encontrado' });
+          return;
+        }
+
+        idCondominio = Number(rows[0].IdCondominio);
+        TENANT_CACHE.set(slug, idCondominio);
+      }
+
+      req.tenantId = idCondominio;
+      req.idCondominio = idCondominio;
       next();
-    })
-    .catch((err) => {
+    } catch (err: unknown) {
       res.status(500).json({
-        error: 'Error resolviendo inquilino',
+        error: 'Error en resolucion multi-tenant',
         detail: err instanceof Error ? err.message : 'Error desconocido',
       });
-    });
+    }
+  };
 }

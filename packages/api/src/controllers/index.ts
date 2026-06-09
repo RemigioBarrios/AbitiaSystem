@@ -11,7 +11,6 @@ import {
   ILedgerService,
   IReciboService,
   IPagoService,
-  ITenantResolutionService,
 } from '@abitia/core';
 
 function getTenantId(req: Request): number {
@@ -135,21 +134,71 @@ export class PagoController {
     }
   }
 
-  async verificar(req: Request, res: Response): Promise<void> {
+  async bandeja(req: Request, res: Response): Promise<void> {
+    try {
+      const idCondominio = getTenantId(req);
+      const service = getRepo<IPagoService>('IPagoService');
+      const result = await service.getBandejaVerificacion(idCondominio);
+      res.json(result);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+      res.status(500).json({ error: message });
+    }
+  }
+
+  async aprobar(req: Request, res: Response): Promise<void> {
     try {
       const idCondominio = getTenantId(req);
       const idUsuario = req.idUsuario;
       if (!idUsuario) { res.status(401).json({ error: 'Usuario no autenticado' }); return; }
 
+      const { idPago } = req.body;
+      if (!idPago) { res.status(400).json({ error: 'idPago es requerido' }); return; }
+
       const service = getRepo<IPagoService>('IPagoService');
-      await service.verificarPago({
+      await service.aprobarPago({
         idCondominio,
-        ...req.body,
+        idPago,
         idUsuarioVerifica: idUsuario,
       });
 
-      const accion = req.body.estatus === 1 ? 'aprobado' : 'rechazado';
-      res.json({ message: `Pago ${accion} correctamente` });
+      res.json({ message: 'Pago aprobado correctamente' });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Error desconocido';
+
+      if (message.includes('Solo un Administrador') || message.includes('no pertenece')) {
+        res.status(403).json({ error: message });
+      } else if (message.includes('ya fue') || message.includes('idPago es requerido')) {
+        res.status(400).json({ error: message });
+      } else if (message.includes('no encontrado')) {
+        res.status(404).json({ error: message });
+      } else {
+        res.status(500).json({ error: message });
+      }
+    }
+  }
+
+  async rechazar(req: Request, res: Response): Promise<void> {
+    try {
+      const idCondominio = getTenantId(req);
+      const idUsuario = req.idUsuario;
+      if (!idUsuario) { res.status(401).json({ error: 'Usuario no autenticado' }); return; }
+
+      const { idPago, motivoRechazo } = req.body;
+      if (!idPago) { res.status(400).json({ error: 'idPago es requerido' }); return; }
+      if (!motivoRechazo || !motivoRechazo.trim()) {
+        res.status(400).json({ error: 'motivoRechazo es obligatorio' }); return;
+      }
+
+      const service = getRepo<IPagoService>('IPagoService');
+      await service.rechazarPago({
+        idCondominio,
+        idPago,
+        idUsuarioVerifica: idUsuario,
+        motivoRechazo,
+      });
+
+      res.json({ message: 'Pago rechazado correctamente' });
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error desconocido';
 
@@ -162,18 +211,6 @@ export class PagoController {
       } else {
         res.status(500).json({ error: message });
       }
-    }
-  }
-
-  async bandeja(req: Request, res: Response): Promise<void> {
-    try {
-      const idCondominio = getTenantId(req);
-      const service = getRepo<IPagoService>('IPagoService');
-      const result = await service.getBandejaVerificacion(idCondominio);
-      res.json(result);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Error desconocido';
-      res.status(500).json({ error: message });
     }
   }
 }

@@ -27,8 +27,9 @@ router.post('/recibos/emitir', authMiddleware, reciboCtrl.emitirPeriodo.bind(rec
 router.get('/recibos/pendientes/:idPropiedad', authMiddleware, reciboCtrl.pendientes.bind(reciboCtrl));
 
 router.post('/pagos/reportar', authMiddleware, pagoCtrl.reportar.bind(pagoCtrl));
-router.put('/pagos/verificar', authMiddleware, pagoCtrl.verificar.bind(pagoCtrl));
 router.get('/pagos/bandeja', authMiddleware, pagoCtrl.bandeja.bind(pagoCtrl));
+router.post('/pagos/aprobar', authMiddleware, pagoCtrl.aprobar.bind(pagoCtrl));
+router.post('/pagos/rechazar', authMiddleware, pagoCtrl.rechazar.bind(pagoCtrl));
 
 router.get('/ledger/:idPropiedad', authMiddleware, ledgerCtrl.historial.bind(ledgerCtrl));
 router.get('/ledger/:idPropiedad/saldo', authMiddleware, ledgerCtrl.saldo.bind(ledgerCtrl));

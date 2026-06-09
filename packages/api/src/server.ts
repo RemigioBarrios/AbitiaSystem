@@ -1,14 +1,12 @@
 import 'reflect-metadata';
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import { configureDataContainer, DataMode } from '@abitia/data';
+import { configureDataContainer, DataMode, MySQLConnection } from '@abitia/data';
 import { configureServicesContainer } from '@abitia/services';
 import { container } from 'tsyringe';
-import { ITenantResolutionService, HostType } from '@abitia/core';
 import {
   hstsMiddleware,
-  hostClassifierMiddleware,
-  tenantResolutionMiddleware,
+  multiTenantMiddleware,
 } from './middleware';
 import publicRoutes from './routes/public';
 import authRoutes from './routes/auth';
@@ -25,29 +23,24 @@ app.use(cors());
 app.use(express.json());
 
 // ============================================================================
-// 1. HSTS + CLASIFICACIÓN DE HOST (todas las peticiones)
+// 1. HSTS + CLASIFICACION Y RESOLUCION DE HOST (todas las peticiones)
 // ============================================================================
 app.use(hstsMiddleware);
-app.use(hostClassifierMiddleware);
+
+const mysqlConnection = container.resolve(MySQLConnection);
+app.use(multiTenantMiddleware(mysqlConnection));
 
 // ============================================================================
 // 2. ROUTERS POR DOMINIO
 // ============================================================================
 
-// --- Router público: abitia.co / www.abitia.co ---
-// Cero persistencia de negocio. Solo contenido estático/marketing.
 const publicRouter = express.Router();
 publicRouter.use('/', publicRoutes);
 
-// --- Router app global: app.abitia.app ---
-// Login unificado. Lee Usuario y Usuario_Condominio_Rol.
 const globalAppRouter = express.Router();
 globalAppRouter.use('/api/auth', authRoutes);
 
-// --- Router tenant: [slug].abitia.app ---
-// Resuelve IdCondominio, inyecta en req, expone rutas operativas + auth.
 const tenantAppRouter = express.Router();
-tenantAppRouter.use(tenantResolutionMiddleware);
 tenantAppRouter.use('/api/auth', authRoutes);
 tenantAppRouter.use('/api', tenantRoutes);
 
@@ -56,11 +49,11 @@ tenantAppRouter.use('/api', tenantRoutes);
 // ============================================================================
 app.use((req: Request, res: Response, next: NextFunction) => {
   switch (req.hostType) {
-    case HostType.PUBLIC:
+    case 'public':
       return publicRouter(req, res, next);
-    case HostType.GLOBAL_APP:
+    case 'global':
       return globalAppRouter(req, res, next);
-    case HostType.TENANT:
+    case 'tenant':
       return tenantAppRouter(req, res, next);
     default:
       res.status(400).json({
@@ -70,7 +63,7 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   }
 });
 
-// Health check global (alcanzable desde cualquier dominio)
+// Health check global
 app.get('/health', (_req, res) => {
   res.json({
     status: 'ok',
@@ -80,21 +73,12 @@ app.get('/health', (_req, res) => {
   });
 });
 
-// ============================================================================
-// 4. PRE-CARGA DE CACHÉ DE TENANTS (async, non-blocking)
-// ============================================================================
-const tenantService = container.resolve<ITenantResolutionService>('ITenantResolutionService');
-tenantService.preloadCache().then(() => {
-  const stats = tenantService.getCacheStats();
-  console.log(`[Abitia] Tenant cache: ${stats.size} slugs pre-cargados → ${stats.entries.join(', ') || '(vacío)'}`);
-});
-
 app.listen(PORT, () => {
   const mode = process.env.NODE_ENV === 'production' ? 'PROD' : 'DEV';
   console.log(`[Abitia API] Puerto ${PORT} | Modo: ${mode} | Persistencia: Local-First`);
-  console.log(`[Abitia]  abitia.co        → Landing público`);
-  console.log(`[Abitia]  app.abitia.app   → Login global unificado`);
-  console.log(`[Abitia]  [slug].abitia.app → Tenant multi-condominio`);
+  console.log(`[Abitia]  abitia.co        -> Landing publico`);
+  console.log(`[Abitia]  app.abitia.app   -> Login global unificado`);
+  console.log(`[Abitia]  [slug].abitia.app -> Tenant multi-condominio`);
 });
 
 export default app;

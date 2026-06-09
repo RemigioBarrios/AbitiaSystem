@@ -31,6 +31,10 @@ export class MySQLConnection {
     return this.pool;
   }
 
+  async getConnection(): Promise<mysql.PoolConnection> {
+    return this.getPool().getConnection();
+  }
+
   async close(): Promise<void> {
     if (this.pool) {
       await this.pool.end();

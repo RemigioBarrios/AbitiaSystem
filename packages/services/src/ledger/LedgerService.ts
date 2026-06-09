@@ -5,6 +5,7 @@ import {
   ICuentaCorrientePropiedad,
   TipoMovimiento,
 } from '@abitia/core';
+import type { PoolConnection } from 'mysql2/promise';
 
 const MOVIMIENTOS_QUE_SUMAN: ReadonlySet<number> = new Set([
   TipoMovimiento.ReciboEmitido,
@@ -37,7 +38,7 @@ export class LedgerService implements ILedgerService {
     idReferenciaOrigen: number;
     descripcion: string;
     monto: number;
-  }): Promise<number> {
+  }, connection?: PoolConnection): Promise<number> {
     if (!TIPOS_VALIDOS.has(params.tipoMovimiento)) {
       throw new Error(`TipoMovimiento inválido: ${params.tipoMovimiento}. Válidos: 1,2,3,4`);
     }
@@ -71,7 +72,7 @@ export class LedgerService implements ILedgerService {
       Descripcion: params.descripcion,
       Monto: params.monto,
       Saldo_Resultante: nuevoSaldo,
-    });
+    }, connection);
   }
 
   // ==========================================================================
@@ -84,6 +85,7 @@ export class LedgerService implements ILedgerService {
     idRecibo: number,
     descripcion: string,
     monto: number,
+    connection?: PoolConnection,
   ): Promise<void> {
     await this.insertarMovimiento({
       idCondominio,
@@ -92,7 +94,7 @@ export class LedgerService implements ILedgerService {
       idReferenciaOrigen: idRecibo,
       descripcion,
       monto,
-    });
+    }, connection);
   }
 
   async registrarPagoAplicado(
@@ -101,6 +103,7 @@ export class LedgerService implements ILedgerService {
     idPago: number,
     descripcion: string,
     monto: number,
+    connection?: PoolConnection,
   ): Promise<void> {
     await this.insertarMovimiento({
       idCondominio,
@@ -109,7 +112,7 @@ export class LedgerService implements ILedgerService {
       idReferenciaOrigen: idPago,
       descripcion,
       monto,
-    });
+    }, connection);
   }
 
   async registrarNotaCredito(
@@ -118,6 +121,7 @@ export class LedgerService implements ILedgerService {
     idReferencia: number,
     descripcion: string,
     monto: number,
+    connection?: PoolConnection,
   ): Promise<void> {
     await this.insertarMovimiento({
       idCondominio,
@@ -126,7 +130,7 @@ export class LedgerService implements ILedgerService {
       idReferenciaOrigen: idReferencia,
       descripcion: `[NC] ${descripcion}`,
       monto,
-    });
+    }, connection);
   }
 
   async registrarNotaDebito(
@@ -135,6 +139,7 @@ export class LedgerService implements ILedgerService {
     idReferencia: number,
     descripcion: string,
     monto: number,
+    connection?: PoolConnection,
   ): Promise<void> {
     await this.insertarMovimiento({
       idCondominio,
@@ -143,7 +148,7 @@ export class LedgerService implements ILedgerService {
       idReferenciaOrigen: idReferencia,
       descripcion: `[ND] ${descripcion}`,
       monto,
-    });
+    }, connection);
   }
 
   // ==========================================================================
