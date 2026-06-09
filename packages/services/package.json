@@ -1,0 +1,17 @@
+{
+  "name": "@abitia/services",
+  "version": "0.1.0",
+  "private": true,
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@abitia/core": "*",
+    "@abitia/data": "*",
+    "reflect-metadata": "^0.2.1",
+    "tsyringe": "^4.8.0"
+  }
+}
