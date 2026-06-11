@@ -26,9 +26,9 @@ app.use(express.json());
 
 // ============================================================================
 // SERVIDOR DE ARCHIVOS ESTÁTICOS (El Monolito Ligero)
-// Sube un nivel desde 'src/' (o 'dist/') para encontrar la carpeta 'public'
 // ============================================================================
-app.use(express.static(path.join(__dirname, '../public')));
+// ¡IMPORTANTE! index: false evita que Express sirva index.html en todos los dominios
+app.use(express.static(path.join(__dirname, '../public'), { index: false }));
 
 // ============================================================================
 // 1. HSTS + CLASIFICACION Y RESOLUCION DE HOST (todas las peticiones)
@@ -39,16 +39,22 @@ const mysqlConnection = container.resolve(MySQLConnection);
 app.use(multiTenantMiddleware(mysqlConnection));
 
 // ============================================================================
-// 2. ROUTERS POR DOMINIO
+// 2. ROUTERS POR DOMINIO (Despacho de Pantallas Estáticas)
 // ============================================================================
 
 const publicRouter = express.Router();
+// El dominio .co carga la landing
+publicRouter.get('/', (req, res) => res.sendFile(path.join(__dirname, '../public/index.html')));
 publicRouter.use('/', publicRoutes);
 
 const globalAppRouter = express.Router();
+// El subdominio 'app' carga el Login general
+globalAppRouter.get('/', (req, res) => res.sendFile(path.join(__dirname, '../public/app/login.html')));
 globalAppRouter.use('/api/auth', createAuthRoutes(mysqlConnection.getPoolSafe() as Pool | undefined));
 
 const tenantAppRouter = express.Router();
+// Los condominios (xyz) cargan el Dashboard
+tenantAppRouter.get('/', (req, res) => res.sendFile(path.join(__dirname, '../public/app/dashboard.html')));
 tenantAppRouter.use('/api/auth', createAuthRoutes(mysqlConnection.getPoolSafe() as Pool | undefined));
 tenantAppRouter.use('/api', tenantRoutes);
 

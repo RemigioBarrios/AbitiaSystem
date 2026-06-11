@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abitia - Software de Gestión de Condominios</title>
+    <meta name="description"
+        content="Sistema web rápido y seguro para administradores de condominios. Cuentas claras, conciliación bancaria y recibos automatizados.">
+    <!-- Tailwind CSS (CDN para máxima velocidad y cero configuración local) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        corporativo: {
+                            900: '#0F172A', // Slate 900
+                            800: '#1E293B', // Slate 800
+                            600: '#2563EB', // Blue 600
+                            500: '#3B82F6', // Blue 500
+                            50: '#F8FAFC'   // Slate 50
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Fuente Inter (SaaS estándar) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+
+<body class="bg-corporativo-50 text-slate-800 antialiased selection:bg-corporativo-600 selection:text-white">
+
+    <!-- 1. Navegación -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center">
+                    <!-- Logo Abitia -->
+                    <span class="text-2xl font-bold text-corporativo-900 tracking-tight">
+                        Abitia<span class="text-corporativo-600">.</span>
+                    </span>
+                </div>
+                <!-- Enlaces Desktop -->
+                <div class="hidden md:flex space-x-8">
+                    <a href="#caracteristicas"
+                        class="text-slate-600 hover:text-corporativo-600 font-medium transition-colors">Características</a>
+                    <a href="#beneficios"
+                        class="text-slate-600 hover:text-corporativo-600 font-medium transition-colors">Beneficios</a>
+                    <a href="#precios"
+                        class="text-slate-600 hover:text-corporativo-600 font-medium transition-colors">Precios</a>
+                </div>
+                <!-- Botón Login (Apunta a abitia.app) -->
+                <div class="flex items-center">
+                    <a href="https://app.abitia.app/login"
+                        class="text-corporativo-600 font-semibold hover:text-corporativo-800 mr-4 transition-colors">
+                        Ingresar
+                    </a>
+                    <a href="https://app.abitia.app/registro"
+                        class="hidden md:inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-corporativo-600 hover:bg-corporativo-500 transition-colors">
+                        Prueba Gratis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 2. Hero Section -->
+    <header class="relative bg-corporativo-900 overflow-hidden">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center lg:py-32">
+            <h1 class="text-4xl tracking-tight font-extrabold text-white sm:text-5xl md:text-6xl">
+                Cuentas Claras. <br class="hidden sm:block">
+                <span class="text-corporativo-500">Conciliación Sin Estrés.</span>
+            </h1>
+            <p class="mt-4 max-w-2xl mx-auto text-xl text-slate-300">
+                Moderniza la gestión de tu junta de condominio. Un sistema web rápido, seguro y diseñado para erradicar
+                la morosidad y los descuadres matemáticos.
+            </p>
+            <div class="mt-10 flex justify-center gap-4">
+                <a href="https://app.abitia.app/registro"
+                    class="px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-corporativo-600 hover:bg-corporativo-500 shadow-lg hover:shadow-xl transition-all">
+                    Empieza tu prueba gratis de 14 días
+                </a>
+            </div>
+            <p class="mt-3 text-sm text-slate-400 font-medium">Sin tarjeta de crédito. Configuración en 5 minutos.</p>
+        </div>
+    </header>
+
+    <!-- 3. Sección de Características Clave -->
+    <section id="caracteristicas" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-extrabold text-corporativo-900">Ingeniería financiera para tu edificio</h2>
+                <p class="mt-4 text-lg text-slate-600">Abitia está construido sobre una arquitectura contable
+                    inquebrantable.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Feature 1 -->
+                <div
+                    class="bg-corporativo-50 p-8 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div
+                        class="w-12 h-12 bg-white rounded-lg border border-slate-200 flex items-center justify-center mb-6 shadow-sm">
+                        <svg class="w-6 h-6 text-corporativo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-corporativo-900 mb-3">Contabilidad Inmutable (Ledger)</h3>
+                    <p class="text-slate-600 leading-relaxed">Cada céntimo rastreado. Nuestro historial exacto por
+                        inmueble evita recálculos destructivos. Cero descuadres matemáticos y auditorías transparentes
+                        para todos los vecinos.</p>
+                </div>
+
+                <!-- Feature 2 -->
+                <div
+                    class="bg-corporativo-50 p-8 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div
+                        class="w-12 h-12 bg-white rounded-lg border border-slate-200 flex items-center justify-center mb-6 shadow-sm">
+                        <svg class="w-6 h-6 text-corporativo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-corporativo-900 mb-3">Bandeja de Verificación de Pagos</h3>
+                    <p class="text-slate-600 leading-relaxed">Los copropietarios reportan sus depósitos directamente
+                        desde la app. La administración los revisa y aprueba. Conciliación bancaria antibochinchis con
+                        detección de referencias duplicadas.</p>
+                </div>
+
+                <!-- Feature 3 -->
+                <div
+                    class="bg-corporativo-50 p-8 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div
+                        class="w-12 h-12 bg-white rounded-lg border border-slate-200 flex items-center justify-center mb-6 shadow-sm">
+                        <svg class="w-6 h-6 text-corporativo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-corporativo-900 mb-3">Recibos Automatizados</h3>
+                    <p class="text-slate-600 leading-relaxed">Cálculo exacto de gastos comunes basado en la alícuota
+                        legal de cada propiedad. Genera la facturación mensual del edificio entero con un solo clic.</p>
+                </div>
+
+                <!-- Feature 4 -->
+                <div
+                    class="bg-corporativo-50 p-8 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
+                    <div
+                        class="w-12 h-12 bg-white rounded-lg border border-slate-200 flex items-center justify-center mb-6 shadow-sm">
+                        <svg class="w-6 h-6 text-corporativo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4">
+                            </path>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-corporativo-900 mb-3">Multi-Condominio (Multi-Tenant)</h3>
+                    <p class="text-slate-600 leading-relaxed">¿Administras varios edificios o posees múltiples
+                        propiedades? Controla todo desde una cuenta centralizada, con aislamiento de datos absoluto por
+                        torre o residencia.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Beneficios (Adaptada de Vercel v0) -->
+    <section id="beneficios" class="py-20 md:py-28 bg-slate-50 border-t border-slate-200">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid items-center gap-12 lg:grid-cols-2">
+
+                <!-- Columna Izquierda: Textos -->
+                <div>
+                    <p class="text-sm font-bold uppercase tracking-wider text-corporativo-600">
+                        Beneficios
+                    </p>
+                    <h2
+                        class="mt-3 text-3xl font-extrabold tracking-tight text-corporativo-900 sm:text-4xl text-balance">
+                        Menos estrés para la junta, más confianza en la comunidad
+                    </h2>
+                    <p class="mt-4 text-lg leading-relaxed text-slate-600 text-pretty">
+                        Abitia convierte la administración financiera del condominio en un proceso ordenado, verificable
+                        y fácil de auditar.
+                    </p>
+                </div>
+
+                <!-- Columna Derecha: Lista de Beneficios -->
+                <ul class="flex flex-col gap-8">
+
+                    <!-- Beneficio 1: Reduce la morosidad -->
+                    <li class="flex gap-5">
+                        <span
+                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-corporativo-600 text-white shadow-md">
+                            <!-- Icono: TrendingDown -->
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <h3 class="text-xl font-bold text-corporativo-900">Reduce la morosidad</h3>
+                            <p class="mt-1 leading-relaxed text-slate-600">
+                                Estados de cuenta claros y recordatorios oportunos. Los propietarios saben exactamente
+                                cuánto deben y por qué, lo que acelera los pagos.
+                            </p>
+                        </div>
+                    </li>
+
+                    <!-- Beneficio 2: Transparencia total -->
+                    <li class="flex gap-5">
+                        <span
+                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-corporativo-600 text-white shadow-md">
+                            <!-- Icono: Eye -->
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                </path>
+                            </svg>
+                        </span>
+                        <div>
+                            <h3 class="text-xl font-bold text-corporativo-900">Transparencia total</h3>
+                            <p class="mt-1 leading-relaxed text-slate-600">
+                                Cada peso entra y sale a la vista. La junta y los propietarios consultan el mismo
+                                historial, eliminando desconfianzas y reclamos.
+                            </p>
+                        </div>
+                    </li>
+
+                    <!-- Beneficio 3: Ahorra horas de trabajo -->
+                    <li class="flex gap-5">
+                        <span
+                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-corporativo-600 text-white shadow-md">
+                            <!-- Icono: Clock -->
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </span>
+                        <div>
+                            <h3 class="text-xl font-bold text-corporativo-900">Ahorra horas de trabajo</h3>
+                            <p class="mt-1 leading-relaxed text-slate-600">
+                                Olvida las hojas de cálculo y la conciliación manual. Abitia automatiza los cálculos y
+                                deja la operación lista en minutos.
+                            </p>
+                        </div>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </section>
+    <!-- 4. Sección de Precios y Calculadora -->
+    <section id="precios" class="py-20 bg-white border-t border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <h2 class="text-3xl font-extrabold text-corporativo-900">Planes Transparentes y Escalables</h2>
+                <p class="mt-4 text-lg text-slate-600">
+                    Todos los planes incluyen hasta <strong class="text-corporativo-600">3 condominios</strong> base.
+                    Selecciona el límite máximo de inmuebles por condominio.
+                </p>
+            </div>
+
+            <!-- Calculadora (Estilo Vivook) -->
+            <div
+                class="max-w-2xl mx-auto mb-16 bg-corporativo-50 p-6 md:p-8 rounded-xl border border-slate-200 shadow-sm text-center">
+                <label for="extraCondos" class="block text-base font-bold text-corporativo-900 mb-4">
+                    ¿Administras más de 3 condominios?
+                </label>
+                <div class="flex items-center justify-center space-x-6 mb-4">
+                    <span class="text-slate-500 font-medium whitespace-nowrap">3 Base</span>
+                    <input type="range" id="extraCondos" min="0" max="20" value="0"
+                        class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-corporativo-600">
+                    <span class="bg-corporativo-900 text-white font-bold text-lg px-4 py-1 rounded-md min-w-[3rem]"
+                        id="totalCondosLabel">3</span>
+                </div>
+                <p class="text-sm text-slate-500">
+                    Suma condominios adicionales por <strong class="text-corporativo-600">+$10 USD / mes</strong> cada
+                    uno.
+                </p>
+            </div>
+
+            <!-- Tarjetas de Precios -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+
+                <!-- Tarjeta 1: 50 Apartamentos -->
+                <div
+                    class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-shadow relative flex flex-col">
+                    <h3 class="text-xl font-bold text-slate-900">Plan Básico</h3>
+                    <p class="text-slate-500 text-sm mt-2">Hasta 50 apartamentos/inmuebles por condominio.</p>
+                    <div class="mt-6 mb-6 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-corporativo-900">$</span>
+                        <span class="text-5xl font-extrabold text-corporativo-900 tracking-tight"
+                            id="price-basico">29</span>
+                        <span class="text-slate-500 ml-2 font-medium">/mes</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-1">
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 text-green-500 mr-2 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-sm text-slate-600"><span id="qty-basico" class="font-bold">3</span>
+                                Condominios incluidos</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 text-green-500 mr-2 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-sm text-slate-600">Ledger Contable Inmutable</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 text-green-500 mr-2 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-sm text-slate-600">Bandeja de Verificación de Pagos</span>
+                        </li>
+                    </ul>
+                    <a href="https://app.abitia.app/registro"
+                        class="w-full block text-center px-6 py-3 border border-corporativo-600 text-corporativo-600 font-bold rounded-md hover:bg-corporativo-50 transition-colors">
+                        Iniciar Prueba Gratis
+                    </a>
+                </div>
+
+                <!-- Tarjeta 2: 75 Apartamentos (Destacada) -->
+                <div
+                    class="bg-corporativo-900 p-8 rounded-xl border border-corporativo-800 shadow-xl relative flex flex-col transform md:-translate-y-4">
+                    <div
+                        class="absolute top-0 right-0 -mt-4 mr-4 px-3 py-1 bg-corporativo-500 text-white text-xs font-bold uppercase rounded-full shadow-sm">
+                        Más Popular
+                    </div>
+                    <h3 class="text-xl font-bold text-white">Plan Profesional</h3>
+                    <p class="text-slate-400 text-sm mt-2">Hasta 75 apartamentos/inmuebles por condominio.</p>
+                    <div class="mt-6 mb-6 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-white">$</span>
+                        <span class="text-5xl font-extrabold text-white tracking-tight" id="price-profesional">39</span>
+                        <span class="text-slate-400 ml-2 font-medium">/mes</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-1">
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 text-corporativo-500 mr-2 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-sm text-slate-300"><span id="qty-profesional"
+                                    class="font-bold text-white">3</span> Condominios incluidos</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 text-corporativo-500 mr-2 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-sm text-slate-300">Todo lo del plan Básico</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 text-corporativo-500 mr-2 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-sm text-slate-300">Generación Automática de Recibos</span>
+                        </li>
+                    </ul>
+                    <a href="https://app.abitia.app/registro"
+                        class="w-full block text-center px-6 py-3 border border-transparent text-white bg-corporativo-600 font-bold rounded-md hover:bg-corporativo-500 transition-colors shadow-md">
+                        Iniciar Prueba Gratis
+                    </a>
+                </div>
+
+                <!-- Tarjeta 3: 100 Apartamentos -->
+                <div
+                    class="bg-white p-8 rounded-xl border border-slate-200 shadow-sm hover:shadow-lg transition-shadow relative flex flex-col">
+                    <h3 class="text-xl font-bold text-slate-900">Plan Élite</h3>
+                    <p class="text-slate-500 text-sm mt-2">Hasta 100 apartamentos/inmuebles por condominio.</p>
+                    <div class="mt-6 mb-6 flex items-baseline">
+                        <span class="text-4xl font-extrabold text-corporativo-900">$</span>
+                        <span class="text-5xl font-extrabold text-corporativo-900 tracking-tight"
+                            id="price-elite">49</span>
+                        <span class="text-slate-500 ml-2 font-medium">/mes</span>
+                    </div>
+                    <ul class="space-y-4 mb-8 flex-1">
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 text-green-500 mr-2 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-sm text-slate-600"><span id="qty-elite" class="font-bold">3</span>
+                                Condominios incluidos</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 text-green-500 mr-2 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-sm text-slate-600">Soporte prioritario 24/7</span>
+                        </li>
+                        <li class="flex items-start">
+                            <svg class="h-5 w-5 text-green-500 mr-2 shrink-0" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span class="text-sm text-slate-600">Exportación de datos de auditoría</span>
+                        </li>
+                    </ul>
+                    <a href="https://app.abitia.app/registro"
+                        class="w-full block text-center px-6 py-3 border border-corporativo-600 text-corporativo-600 font-bold rounded-md hover:bg-corporativo-50 transition-colors">
+                        Iniciar Prueba Gratis
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección de Prueba Gratis (CTA - Adaptado de Vercel) -->
+    <section id="prueba" class="scroll-mt-16 py-20 md:py-28 bg-white">
+        <div class="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div
+                class="overflow-hidden rounded-2xl border border-corporativo-800 bg-corporativo-900 px-6 py-14 text-center text-white sm:px-12 shadow-2xl">
+
+                <!-- Etiqueta: Sin tarjeta de crédito -->
+                <span
+                    class="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white shadow-sm">
+                    <!-- Icono: CreditCard -->
+                    <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <rect width="20" height="14" x="2" y="5" rx="2"></rect>
+                        <line x1="2" x2="22" y1="10" y2="10"></line>
+                    </svg>
+                    Sin tarjeta de crédito
+                </span>
+
+                <h2
+                    class="mx-auto mt-6 max-w-2xl text-balance text-3xl font-extrabold tracking-tight sm:text-4xl text-white">
+                    Crea tu cuenta, configura tu condominio y emite tu primer recibo en minutos
+                </h2>
+                <p class="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-slate-300">
+                    Prueba Abitia gratis durante 14 días. Sin riesgo, sin compromisos y sin instalaciones.
+                </p>
+
+                <!-- Grid de Pasos -->
+                <div class="mx-auto mt-10 grid max-w-2xl gap-4 sm:grid-cols-3">
+
+                    <!-- Paso 1 -->
+                    <div
+                        class="rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition hover:bg-white/10">
+                        <span
+                            class="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-white">
+                            <!-- Icono: UserPlus -->
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <line x1="19" x2="19" y1="8" y2="14"></line>
+                                <line x1="22" x2="16" y1="11" y2="11"></line>
+                            </svg>
+                        </span>
+                        <p class="mt-4 text-sm font-medium text-white">
+                            <span class="text-slate-400">1. </span>Crea tu cuenta
+                        </p>
+                    </div>
+
+                    <!-- Paso 2 -->
+                    <div
+                        class="rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition hover:bg-white/10">
+                        <span
+                            class="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-white">
+                            <!-- Icono: Settings2 -->
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7h-9">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 17H5">
+                                </path>
+                                <circle cx="17" cy="17" r="3"></circle>
+                                <circle cx="7" cy="7" r="3"></circle>
+                            </svg>
+                        </span>
+                        <p class="mt-4 text-sm font-medium text-white">
+                            <span class="text-slate-400">2. </span>Configura tu condominio
+                        </p>
+                    </div>
+
+                    <!-- Paso 3 -->
+                    <div
+                        class="rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm transition hover:bg-white/10">
+                        <span
+                            class="mx-auto flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-white">
+                            <!-- Icono: ReceiptText -->
+                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                                aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 8H8">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12H8">
+                                </path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16H8">
+                                </path>
+                            </svg>
+                        </span>
+                        <p class="mt-4 text-sm font-medium text-white">
+                            <span class="text-slate-400">3. </span>Emite tu primer recibo
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- Botón CTA -->
+                <div class="mt-12">
+                    <a href="https://app.abitia.app/registro"
+                        class="inline-flex items-center justify-center h-14 px-8 text-base font-bold rounded-md text-corporativo-900 bg-white hover:bg-slate-100 shadow-xl hover:shadow-2xl transition-all transform hover:-translate-y-0.5">
+                        Empieza tu prueba gratis de 14 días
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. Footer -->
+    <footer class="bg-white border-t border-slate-200 pt-12 pb-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <span class="text-xl font-bold text-corporativo-900 tracking-tight">
+                        Abitia<span class="text-corporativo-600">.</span>
+                    </span>
+                    <p class="mt-2 text-sm text-slate-500">
+                        El motor operativo para condominios modernos.
+                    </p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-slate-400 hover:text-slate-600 text-sm">Privacidad</a>
+                    <a href="#" class="text-slate-400 hover:text-slate-600 text-sm">Términos de Servicio</a>
+                    <a href="mailto:soporte@abitia.co" class="text-slate-400 hover:text-slate-600 text-sm">Soporte</a>
+                </div>
+            </div>
+            <div class="mt-8 border-t border-slate-100 pt-8 flex flex-col md:flex-row justify-between items-center">
+                <p class="text-sm text-slate-400">
+                    &copy; 2026 Abitia. Todos los derechos reservados.
+                </p>
+                <p class="text-xs text-slate-400 mt-2 md:mt-0">
+                    Operando en <span class="font-medium">abitia.app</span> | Corporativo en <span
+                        class="font-medium">abitia.co</span>
+                </p>
+            </div>
+        </div>
+    </footer>
+    <!-- Script de la Calculadora de Precios -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const extraCondosSlider = document.getElementById('extraCondos');
+            const totalCondosLabel = document.getElementById('totalCondosLabel');
+
+            // Precios Base (3 condominios incluidos)
+            const basePrices = { basico: 29, profesional: 39, elite: 49 };
+            const pricePerExtraCondo = 10; // $10 USD por condominio extra
+            const baseCondosQty = 3;
+
+            // Elementos del DOM a actualizar
+            const priceElements = {
+                basico: document.getElementById('price-basico'),
+                profesional: document.getElementById('price-profesional'),
+                elite: document.getElementById('price-elite')
+            };
+            const qtyElements = {
+                basico: document.getElementById('qty-basico'),
+                profesional: document.getElementById('qty-profesional'),
+                elite: document.getElementById('qty-elite')
+            };
+
+            function updatePricing() {
+                const extraCondos = parseInt(extraCondosSlider.value, 10);
+                const totalCondos = baseCondosQty + extraCondos;
+                const extraCost = extraCondos * pricePerExtraCondo;
+
+                // Actualizar etiqueta del slider
+                totalCondosLabel.textContent = totalCondos;
+
+                // Actualizar precios en las tarjetas
+                priceElements.basico.textContent = basePrices.basico + extraCost;
+                priceElements.profesional.textContent = basePrices.profesional + extraCost;
+                priceElements.elite.textContent = basePrices.elite + extraCost;
+
+                // Actualizar cantidades de texto en las tarjetas
+                qtyElements.basico.textContent = totalCondos;
+                qtyElements.profesional.textContent = totalCondos;
+                qtyElements.elite.textContent = totalCondos;
+            }
+
+            // Escuchar cambios en el slider
+            extraCondosSlider.addEventListener('input', updatePricing);
+        });
+    </script>
+</body>
+
+</html>
