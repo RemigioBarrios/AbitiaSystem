@@ -31,6 +31,10 @@ export class MySQLConnection {
     return this.pool;
   }
 
+  getPoolSafe(): mysql.Pool | null {
+    return this.pool;
+  }
+
   async getConnection(): Promise<mysql.PoolConnection> {
     return this.getPool().getConnection();
   }

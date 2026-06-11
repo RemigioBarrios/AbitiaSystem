@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { MySQLConnection } from '@abitia/data';
-import type { RowDataPacket } from 'mysql2';
+import { ICondominioRepository } from '@abitia/core';
+import { container } from 'tsyringe';
 
 declare global {
   namespace Express {
@@ -53,6 +54,10 @@ export function multiTenantMiddleware(connection: MySQLConnection) {
 
       req.hostType = type;
 
+      if (req.path === '/api/seed' && req.method === 'POST') {
+        return next();
+      }
+
       if (type === 'public' || type === 'global') {
         return next();
       }
@@ -73,17 +78,34 @@ export function multiTenantMiddleware(connection: MySQLConnection) {
       let idCondominio = TENANT_CACHE.get(slug);
 
       if (idCondominio === undefined) {
-        const [rows] = await connection.getPool().execute<RowDataPacket[]>(
-          'SELECT IdCondominio FROM Condominio WHERE Subdominio_Slug = ? LIMIT 1',
-          [slug],
-        );
+        let found: number | null = null;
 
-        if (rows.length === 0) {
+        // Intentar MySQL (producción)
+        try {
+          const pool = connection.getPool();
+          const [rows] = await pool.execute(
+            'SELECT IdCondominio FROM Condominio WHERE Subdominio_Slug = ? LIMIT 1',
+            [slug],
+          ) as [Array<{ IdCondominio: number }>, unknown];
+
+          if (rows.length > 0) {
+            found = Number(rows[0].IdCondominio);
+          }
+        } catch {
+          // Modo Local-First: usar repositorio del contenedor DI
+          const repo = container.resolve<ICondominioRepository>('ICondominioRepository');
+          const condominio = await repo.findBySlug(slug);
+          if (condominio) {
+            found = condominio.IdCondominio;
+          }
+        }
+
+        if (found === null) {
           res.status(404).json({ error: 'Condominio no encontrado' });
           return;
         }
 
-        idCondominio = Number(rows[0].IdCondominio);
+        idCondominio = found;
         TENANT_CACHE.set(slug, idCondominio);
       }
 

@@ -62,7 +62,7 @@ function createTestApp(idCondominio: number): Express {
   return app;
 }
 
-function createMockConnection(store: LocalStore): { getConnection: () => Promise<Record<string, jest.Mock>> } {
+function createMockConnection(store: LocalStore): { getConnection: () => Promise<Record<string, jest.Mock>>, getPoolSafe: jest.Mock } {
   const mockConn = {
     beginTransaction: jest.fn().mockResolvedValue(undefined),
     execute: jest.fn().mockImplementation(async (_sql: string, params: unknown[]) => {
@@ -80,7 +80,10 @@ function createMockConnection(store: LocalStore): { getConnection: () => Promise
     rollback: jest.fn().mockResolvedValue(undefined),
     release: jest.fn().mockResolvedValue(undefined),
   };
-  return { getConnection: jest.fn().mockResolvedValue(mockConn) };
+  return {
+    getConnection: jest.fn().mockResolvedValue(mockConn),
+    getPoolSafe: jest.fn().mockReturnValue({}),
+  };
 }
 
 // =============================================================================

@@ -38,7 +38,7 @@ export class MySQLCondominioRepository implements ICondominioRepository {
 
     const [result] = await this.connection.getPool().execute<ResultSetHeader>(
       `INSERT INTO Condominio (${columns}) VALUES (${placeholders})`,
-      values,
+      values as any[],
     );
     return result.insertId;
   }
@@ -52,7 +52,7 @@ export class MySQLCondominioRepository implements ICondominioRepository {
 
     await this.connection.getPool().execute(
       `UPDATE Condominio SET ${setClauses} WHERE IdCondominio = ?`,
-      [...values, id],
+      [...values, id] as any[],
     );
   }
 

@@ -13,6 +13,7 @@
     user: JSON.parse(localStorage.getItem('abitia_user') || 'null'),
     condominio: JSON.parse(localStorage.getItem('abitia_condominio') || 'null'),
     syncing: false,
+    propiedades: new Map(),
   };
 
   /* ------------------------------------------------------------------------
@@ -32,6 +33,7 @@
     lastSync:      $('lastSync'),
     userLabel:     $('userLabel'),
     refreshBtn:    $('refreshBtn'),
+    syncBtn:       $('syncBtn'),
     toastContainer:$('toastContainer'),
   };
 
@@ -41,6 +43,51 @@
   document.addEventListener('DOMContentLoaded', function () {
     els.loginForm.addEventListener('submit', handleLogin);
     els.refreshBtn.addEventListener('click', function () { loadBandeja(); });
+    
+    if (els.syncBtn) {
+      els.syncBtn.addEventListener('click', function () {
+        if (STATE.syncing) return;
+        STATE.syncing = true;
+        els.syncBtn.classList.add('syncing');
+        setStatus('Sincronizando con el servidor contable…');
+        setTimeout(function () {
+          fetch(API_BASE + '/propiedades', { headers: authHeaders() })
+            .then(function (res) {
+              if (res.status === 401) { logout(); throw new Error('Sesión expirada.'); }
+              return res.json();
+            })
+            .then(function (props) {
+              STATE.propiedades.clear();
+              if (Array.isArray(props)) {
+                for (var i = 0; i < props.length; i++) {
+                  STATE.propiedades.set(props[i].IdPropiedad, props[i].Codigo_Nro);
+                }
+              }
+              return fetch(API_BASE + '/pagos/bandeja', { headers: authHeaders() });
+            })
+            .then(function (res) {
+              if (res.status === 401) { logout(); throw new Error('Sesión expirada.'); }
+              return res.json().then(function (data) { return { ok: res.ok, data: data }; });
+            })
+            .then(function (result) {
+              if (!result.ok) throw new Error(result.data.error || 'Error al cargar la bandeja');
+              renderTable(result.data);
+              els.lastSync.textContent = 'Actualizado: ' + formatTime(new Date());
+              toast('Sincronización finalizada con éxito.', 'success');
+              setStatus('');
+            })
+            .catch(function (err) {
+              setStatus('');
+              if (err.message === 'Sesión expirada.') return;
+              toast(err.message, 'error');
+            })
+            .finally(function () {
+              STATE.syncing = false;
+              els.syncBtn.classList.remove('syncing');
+            });
+        }, 800);
+      });
+    }
 
     if (STATE.token) {
       updateUserUI();
@@ -138,8 +185,11 @@
 
   function redirectToTenant(slug) {
     if (!slug) return;
-    var expected = slug + '.localhost';
-    if (window.location.hostname === expected) {
+    var hostname = window.location.hostname;
+    var isLocal = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.localhost');
+    var expected = slug + (isLocal ? '.localhost' : '.abitia.app');
+
+    if (hostname === expected) {
       updateUserUI();
       hideLogin();
       loadBandeja();
@@ -178,7 +228,21 @@
     setStatus('Cargando…');
     els.statusMsg.style.color = '#48dbfb';
 
-    fetch(API_BASE + '/pagos/bandeja', { headers: authHeaders() })
+    // Cargar propiedades para resolver el código amigable
+    fetch(API_BASE + '/propiedades', { headers: authHeaders() })
+      .then(function (res) {
+        if (res.status === 401) { logout(); throw new Error('Sesión expirada.'); }
+        return res.json();
+      })
+      .then(function (props) {
+        STATE.propiedades.clear();
+        if (Array.isArray(props)) {
+          for (var i = 0; i < props.length; i++) {
+            STATE.propiedades.set(props[i].IdPropiedad, props[i].Codigo_Nro);
+          }
+        }
+        return fetch(API_BASE + '/pagos/bandeja', { headers: authHeaders() });
+      })
       .then(function (res) {
         if (res.status === 401) { logout(); throw new Error('Sesión expirada.'); }
         return res.json().then(function (data) { return { ok: res.ok, data: data }; });
@@ -217,9 +281,11 @@
       var tr = document.createElement('tr');
       tr.setAttribute('data-id', p.IdPago);
 
+      var nroPropiedad = STATE.propiedades.get(p.IdPropiedad) || String(p.IdPropiedad);
+
       tr.innerHTML =
         '<td title="' + formatDateTime(p.Fecha_Reporte) + '">' + formatDate(p.Fecha_Reporte) + '</td>' +
-        '<td>' + escapeHtml(String(p.IdPropiedad)) + '</td>' +
+        '<td>' + escapeHtml(nroPropiedad) + '</td>' +
         '<td title="' + escapeHtml(p.Referencia_Bancaria || '') + '">' + escapeHtml(p.Referencia_Bancaria || '—') + '</td>' +
         '<td>' + formatFormaPago(p.Forma_Pago) + '</td>' +
         '<td>' + formatCurrency(p.Monto) + '</td>' +

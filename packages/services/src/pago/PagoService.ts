@@ -83,34 +83,56 @@ export class PagoService implements IPagoService {
       throw new Error(`Este pago ya fue ${estadoActual}. Solo los pagos pendientes pueden ser verificados.`);
     }
 
-    const connection = await this.mysqlConnection.getConnection();
+    const pool = typeof this.mysqlConnection.getPoolSafe === 'function'
+      ? this.mysqlConnection.getPoolSafe()
+      : null;
 
-    try {
-      await connection.beginTransaction();
+    if (pool) {
+      const connection = await this.mysqlConnection.getConnection();
 
-      // a) Actualizar Pago_Reportado → Estatus = 1, fecha y usuario verificador
-      await connection.execute(
-        'UPDATE PagoReportado SET Estatus_Verificacion = ?, IdUsuario_Verifica = ?, ' +
-        'Motivo_Rechazo = NULL, Fecha_Verificacion = NOW() WHERE IdPago = ? AND IdCondominio = ?',
-        [EstatusVerificacion.Aprobado, input.idUsuarioVerifica, input.idPago, input.idCondominio],
+      try {
+        await connection.beginTransaction();
+
+        // a) Actualizar Pago_Reportado → Estatus = 1, fecha y usuario verificador
+        await connection.execute(
+          'UPDATE PagoReportado SET Estatus_Verificacion = ?, IdUsuario_Verifica = ?, ' +
+          'Motivo_Rechazo = NULL, Fecha_Verificacion = NOW() WHERE IdPago = ? AND IdCondominio = ?',
+          [EstatusVerificacion.Aprobado, input.idUsuarioVerifica, input.idPago, input.idCondominio],
+        );
+
+        // b) Insertar movimiento Tipo 2 (Pago Aplicado) en Cuenta_Corriente_Propiedad
+        await this.ledgerService.registrarPagoAplicado(
+          pago.IdCondominio,
+          pago.IdPropiedad,
+          pago.IdPago,
+          `Pago aprobado Ref: ${pago.Referencia_Bancaria}`,
+          pago.Monto,
+          connection,
+        );
+
+        await connection.commit();
+      } catch (err) {
+        await connection.rollback();
+        throw err;
+      } finally {
+        connection.release();
+      }
+    } else {
+      // Modo Local-First
+      await this.pagoRepo.verificar(
+        input.idCondominio,
+        input.idPago,
+        EstatusVerificacion.Aprobado,
+        input.idUsuarioVerifica,
       );
 
-      // b) Insertar movimiento Tipo 2 (Pago Aplicado) en Cuenta_Corriente_Propiedad
       await this.ledgerService.registrarPagoAplicado(
         pago.IdCondominio,
         pago.IdPropiedad,
         pago.IdPago,
         `Pago aprobado Ref: ${pago.Referencia_Bancaria}`,
         pago.Monto,
-        connection,
       );
-
-      await connection.commit();
-    } catch (err) {
-      await connection.rollback();
-      throw err;
-    } finally {
-      connection.release();
     }
 
     // Conciliación de recibos (fuera de la transacción — los recibos se compensan
