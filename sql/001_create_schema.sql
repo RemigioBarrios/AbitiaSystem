@@ -3,8 +3,8 @@
 -- MOTOR: MySQL 8.0+ / InnoDB
 -- =============================================================================
 
-CREATE DATABASE IF NOT EXISTS abitia_core CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE abitia_core;
+CREATE DATABASE IF NOT EXISTS abitia_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE abitia_db;
 
 -- =============================================================================
 -- 1. TABLA NÚCLEO: CONDOMINIO (TENANTS)
