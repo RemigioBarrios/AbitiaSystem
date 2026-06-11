@@ -7,7 +7,9 @@ import bcrypt from 'bcryptjs';
 // Carga las variables de entorno si dotenv está disponible
 try {
   const fs = require('fs');
-  const envFile = process.env.NODE_ENV === 'production' ? '.env.production' : '.env';
+  // Detectar si está ejecutándose desde la carpeta de distribución (producción)
+  const isProdDir = __dirname.replace(/\\/g, '/').split('/').pop() === 'dist';
+  const envFile = (process.env.NODE_ENV === 'production' || isProdDir) ? '.env.production' : '.env';
   const envPath = path.join(__dirname, '../../../', envFile);
   
   if (fs.existsSync(envPath)) {
