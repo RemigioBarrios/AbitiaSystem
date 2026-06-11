@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abitia - Acceso Unificado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* El azul metalizado corporativo para componentes principales */
+        .bg-metal-blue {
+            background-color: #2c3e50;
+        }
+
+        .hover-metal-blue:hover {
+            background-color: #1a252f;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans">
+
+    <div class="max-w-md w-full bg-white p-8 border border-gray-200 shadow-md rounded-lg">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900 tracking-tight">Abitia</h1>
+            <p class="text-sm text-gray-500 mt-2">Acceso Administrativo Global</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+                <input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm shadow-sm placeholder-gray-400
+                    focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500 transition-colors"
+                    placeholder="admin@casa10.com">
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                <input type="password" id="password" name="password" required class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md text-sm shadow-sm placeholder-gray-400
+                    focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500 transition-colors"
+                    placeholder="••••••••">
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input id="remember-me" name="remember-me" type="checkbox"
+                        class="h-4 w-4 text-slate-600 focus:ring-slate-500 border-gray-300 rounded">
+                    <label for="remember-me" class="ml-2 block text-sm text-gray-900"> Recordar sesión </label>
+                </div>
+                <div class="text-sm">
+                    <a href="#" class="font-medium text-slate-600 hover:text-slate-800">¿Olvidaste tu contraseña?</a>
+                </div>
+            </div>
+
+            <div>
+                <button type="submit"
+                    class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-metal-blue hover-metal-blue focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors">
+                    Iniciar Sesión
+                </button>
+            </div>
+        </form>
+
+        <div id="errorMessage"
+            class="mt-4 text-sm text-red-600 hidden text-center bg-red-50 p-2 rounded border border-red-100">
+            Credenciales inválidas o error de conexión.
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('remember-me').checked;
+            const errorDiv = document.getElementById('errorMessage');
+            const submitBtn = this.querySelector('button[type="submit"]');
+
+            // UI Feedback: deshabilitar botón mientras carga
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Verificando...';
+            errorDiv.classList.add('hidden');
+
+            try {
+                // Llamada a tu Router Global de Autenticación
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Credenciales inválidas');
+                }
+
+                // 1. Guardar el Token inteligentemente
+                // Si marcó "Recordar", va a localStorage (sobrevive al cerrar el navegador)
+                // Si no, va a sessionStorage (se borra al cerrar la pestaña)
+                const storage = rememberMe ? localStorage : sessionStorage;
+                storage.setItem('abitia_token', data.token);
+                storage.setItem('abitia_user', JSON.stringify({
+                    nombre: data.user.Nombre,
+                    rol: data.user.Rol,
+                    condominioId: data.user.IdCondominio
+                }));
+
+                // 2. Redirección Multi-Tenant
+                // Si el backend nos dice a qué condominio pertenece, lo enviamos a su subdominio
+                if (data.tenantSlug) {
+                    window.location.href = `https://${data.tenantSlug}.abitia.app/`;
+                } else {
+                    // Si es un superadmin o no tiene tenant específico
+                    window.location.href = '/app/dashboard.html';
+                }
+
+            } catch (err) {
+                // Mostrar el error en pantalla
+                errorDiv.textContent = err.message;
+                errorDiv.classList.remove('hidden');
+            } finally {
+                // Restaurar el botón
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Iniciar Sesión';
+            }
+        });
+    </script>
+</body>
+
+</html>
