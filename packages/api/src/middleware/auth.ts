@@ -4,41 +4,67 @@ import { AuthTokenPayload } from '@abitia/core';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'abitia-dev-secret-change-in-production';
 
-export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
-  const authHeader = req.headers.authorization;
+type JwtAuthPayload = AuthTokenPayload & {
+  IdUsuario?: number;
+};
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+declare global {
+  namespace Express {
+    interface Request {
+      usuarioId?: number;
+      idUsuario?: number;
+    }
+  }
+}
+
+function extractBearerToken(header?: string): string | null {
+  if (!header || !header.startsWith('Bearer ')) {
+    return null;
+  }
+
+  const token = header.slice(7).trim();
+  return token.length > 0 ? token : null;
+}
+
+export function authMiddleware(req: Request, res: Response, next: NextFunction): void {
+  const token = extractBearerToken(req.headers.authorization);
+
+  if (!token) {
     res.status(401).json({ error: 'Token de autorización requerido' });
     return;
   }
 
-  const token = authHeader.split(' ')[1];
-
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthTokenPayload;
-    req.idUsuario = decoded.idUsuario;
+    const decoded = jwt.verify(token, JWT_SECRET) as JwtAuthPayload;
+    const usuarioId = decoded.IdUsuario ?? decoded.idUsuario;
 
-    // Si el token tiene idCondominio y la request es de tipo tenant,
-    // validar que coincida con el subdominio
-    if (decoded.idCondominio && req.idCondominio && decoded.idCondominio !== req.idCondominio) {
-      res.status(403).json({ error: 'El token no corresponde al condominio actual' });
+    if (!usuarioId) {
+      res.status(403).json({ error: 'Token inválido' });
       return;
     }
 
-    // Si la request es tenant y el token no tiene idCondominio vinculado al actual
-    if (req.idCondominio && decoded.idCondominio && decoded.idCondominio !== req.idCondominio) {
-      res.status(403).json({ error: 'Acceso no autorizado a este condominio' });
-      return;
-    }
-
+    req.usuarioId = usuarioId;
+    req.idUsuario = usuarioId;
     next();
-  } catch {
-    res.status(401).json({ error: 'Token inválido o expirado' });
+  } catch (err) {
+    if (err instanceof jwt.TokenExpiredError) {
+      res.status(403).json({ error: 'Token expirado' });
+      return;
+    }
+
+    res.status(401).json({ error: 'Token inválido' });
   }
 }
 
 export function generateToken(payload: AuthTokenPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' });
+  return jwt.sign(
+    {
+      ...payload,
+      IdUsuario: payload.idUsuario,
+    },
+    JWT_SECRET,
+    { expiresIn: '8h' },
+  );
 }
 
 export function generateGlobalToken(idUsuario: number, email: string): string {

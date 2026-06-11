@@ -1,5 +1,8 @@
 import { Request, Response } from 'express';
 import { container } from 'tsyringe';
+import type { Pool } from 'mysql2/promise';
+import type { RowDataPacket } from 'mysql2';
+import bcrypt from 'bcryptjs';
 import {
   IUsuarioRepository,
   ICondominioRepository,
@@ -15,11 +18,35 @@ const ROL_NAMES: Record<number, string> = {
   [Rol.Inquilino]: 'Inquilino',
 };
 
+export type AuthPool = Pick<Pool, 'execute'>;
+
+type UsuarioLoginRow = {
+  IdUsuario: number;
+  Nombre: string;
+  Apellido: string;
+  Email: string;
+  Password_Hash: string;
+  Estatus: number;
+};
+
 function getRepo<T>(token: string): T {
   return container.resolve<T>(token);
 }
 
+function rowToUsuario(row: Record<string, unknown>): UsuarioLoginRow {
+  return {
+    IdUsuario: Number(row.IdUsuario),
+    Nombre: String(row.Nombre),
+    Apellido: String(row.Apellido),
+    Email: String(row.Email),
+    Password_Hash: String(row.Password_Hash),
+    Estatus: Number(row.Estatus),
+  };
+}
+
 export class AuthController {
+  constructor(private readonly pool?: AuthPool | null) {}
+
   async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
@@ -28,20 +55,42 @@ export class AuthController {
         return;
       }
 
-      const usuarioRepo = getRepo<IUsuarioRepository>('IUsuarioRepository');
-      const condominioRepo = getRepo<ICondominioRepository>('ICondominioRepository');
-      const usuario = await usuarioRepo.findByEmail(email);
+      let usuario: UsuarioLoginRow | null = null;
 
-      if (!usuario || usuario.Estatus !== 1) {
+      if (this.pool) {
+        const [rows] = await this.pool.execute<RowDataPacket[]>(
+          'SELECT IdUsuario, Nombre, Apellido, Email, Password_Hash, Estatus FROM Usuario WHERE Email = ? LIMIT 1',
+          [email],
+        );
+        usuario = rows[0] ? rowToUsuario(rows[0] as unknown as Record<string, unknown>) : null;
+      } else {
+        const usuarioRepo = getRepo<IUsuarioRepository>('IUsuarioRepository');
+        const found = await usuarioRepo.findByEmail(email);
+        usuario = found
+          ? {
+              IdUsuario: found.IdUsuario,
+              Nombre: found.Nombre,
+              Apellido: found.Apellido,
+              Email: found.Email,
+              Password_Hash: found.Password_Hash,
+              Estatus: found.Estatus,
+            }
+          : null;
+      }
+
+      if (!usuario || usuario.Estatus === 0) {
         res.status(401).json({ error: 'Credenciales inválidas o usuario inactivo' });
         return;
       }
 
-      // Fase Magra: comparación directa. Fase 2: bcrypt.compare
-      if (usuario.Password_Hash !== password) {
+      const isValidPassword = await bcrypt.compare(password, usuario.Password_Hash);
+      if (!isValidPassword) {
         res.status(401).json({ error: 'Credenciales inválidas' });
         return;
       }
+
+      const usuarioRepo = getRepo<IUsuarioRepository>('IUsuarioRepository');
+      const condominioRepo = getRepo<ICondominioRepository>('ICondominioRepository');
 
       const roles = await usuarioRepo.getRolesByUsuario(usuario.IdUsuario);
 
@@ -63,9 +112,11 @@ export class AuthController {
 
         res.json({
           token,
-          idUsuario: usuario.IdUsuario,
-          email: usuario.Email,
-          nombre: `${usuario.Nombre} ${usuario.Apellido}`,
+          usuario: {
+            IdUsuario: usuario.IdUsuario,
+            email: usuario.Email,
+            nombre: `${usuario.Nombre} ${usuario.Apellido}`,
+          },
           singleCondominio: true,
           condominio: {
             idCondominio: rol.IdCondominio,
@@ -95,9 +146,11 @@ export class AuthController {
 
       res.json({
         token,
-        idUsuario: usuario.IdUsuario,
-        email: usuario.Email,
-        nombre: `${usuario.Nombre} ${usuario.Apellido}`,
+        usuario: {
+          IdUsuario: usuario.IdUsuario,
+          email: usuario.Email,
+          nombre: `${usuario.Nombre} ${usuario.Apellido}`,
+        },
         singleCondominio: false,
         condominios: opciones,
       });
@@ -110,7 +163,7 @@ export class AuthController {
   async selectCondominio(req: Request, res: Response): Promise<void> {
     try {
       const { idCondominio } = req.body;
-      const idUsuario = req.idUsuario;
+      const idUsuario = req.usuarioId ?? req.idUsuario;
 
       if (!idUsuario) {
         res.status(401).json({ error: 'Usuario no autenticado' });
@@ -167,21 +220,21 @@ export class AuthController {
 
   async me(req: Request, res: Response): Promise<void> {
     try {
-      const idUsuario = req.idUsuario;
-      if (!idUsuario) {
+      const usuarioId = req.usuarioId ?? req.idUsuario;
+      if (!usuarioId) {
         res.status(401).json({ error: 'No autenticado' });
         return;
       }
 
       const usuarioRepo = getRepo<IUsuarioRepository>('IUsuarioRepository');
-      const usuario = await usuarioRepo.findById(idUsuario);
+      const usuario = await usuarioRepo.findById(usuarioId);
 
       if (!usuario) {
         res.status(404).json({ error: 'Usuario no encontrado' });
         return;
       }
 
-      const roles = await usuarioRepo.getRolesByUsuario(idUsuario);
+      const roles = await usuarioRepo.getRolesByUsuario(usuarioId);
 
       res.json({
         idUsuario: usuario.IdUsuario,
