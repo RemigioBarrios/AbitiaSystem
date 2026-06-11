@@ -4,8 +4,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 
-// Carga el .env correspondiente al entorno
-require('dotenv').config();
+// Carga el .env desde la raíz del proyecto (dos niveles arriba de src/ o dist/)
+require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
 
 
 import { configureDataContainer, DataMode, MySQLConnection } from '@abitia/data';
