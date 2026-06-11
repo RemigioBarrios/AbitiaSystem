@@ -12,6 +12,7 @@
   ],
   "scripts": {
     "build": "npm run build --workspaces",
+    "dev": "npm run dev:api",
     "dev:api": "npm run dev -w packages/api",
     "dev:web": "npm run dev -w packages/web",
     "lint": "eslint packages/*/src --ext .ts,.tsx",
@@ -19,9 +20,13 @@
     "test": "npm run test --workspaces"
   },
   "devDependencies": {
+    "@types/dotenv": "^6.1.1",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
     "eslint": "^8.57.0",
     "typescript": "^5.4.0"
+  },
+  "dependencies": {
+    "dotenv": "^17.4.2"
   }
 }

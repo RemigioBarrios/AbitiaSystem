@@ -98,27 +98,36 @@
                 }
 
                 // 1. Guardar el Token inteligentemente
-                // Si marcó "Recordar", va a localStorage (sobrevive al cerrar el navegador)
-                // Si no, va a sessionStorage (se borra al cerrar la pestaña)
                 const storage = rememberMe ? localStorage : sessionStorage;
                 storage.setItem('abitia_token', data.token);
-                storage.setItem('abitia_user', JSON.stringify({
-                    nombre: data.user.Nombre,
-                    rol: data.user.Rol,
-                    condominioId: data.user.IdCondominio
-                }));
 
-                // 2. Redirección Multi-Tenant
-                // Si el backend nos dice a qué condominio pertenece, lo enviamos a su subdominio
-                if (data.tenantSlug) {
-                    window.location.href = `https://${data.tenantSlug}.abitia.app/`;
+                // 2. Redirección Multi-Tenant Inteligente (Local vs Producción)
+                if (data.singleCondominio) {
+                    storage.setItem('abitia_user', JSON.stringify({
+                        id: data.usuario.IdUsuario,
+                        nombre: data.usuario.nombre,
+                        email: data.usuario.email,
+                        rol: data.condominio.rol,
+                        nombreRol: data.condominio.nombreRol,
+                        condominioId: data.condominio.idCondominio,
+                        slug: data.condominio.slug
+                    }));
+
+                    // Detectar si estamos en local o en el servidor
+                    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+                    const port = window.location.port ? `:${window.location.port}` : '';
+                    const protocol = isLocal ? 'http:' : 'https:';
+                    const baseDomain = isLocal ? 'localhost' : 'abitia.app';
+
+                    // En local armará: http://casa10.localhost:3000/
+                    // En prod armará:  https://casa10.abitia.app/
+                    window.location.href = `${protocol}//${data.condominio.slug}.${baseDomain}${port}/`;
                 } else {
-                    // Si es un superadmin o no tiene tenant específico
                     window.location.href = '/app/dashboard.html';
                 }
 
             } catch (err) {
-                // Mostrar el error en pantalla
+                // Mostrar el error en pantalla (Aquí veremos los [DEBUG] del backend)
                 errorDiv.textContent = err.message;
                 errorDiv.classList.remove('hidden');
             } finally {

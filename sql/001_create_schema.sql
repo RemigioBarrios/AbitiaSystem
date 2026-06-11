@@ -37,7 +37,7 @@ CREATE TABLE Usuario (
 -- =============================================================================
 -- 3. TABLA DE INTERSECCIÓN: ROLES MULTI-CONDOMINIO
 -- =============================================================================
-CREATE TABLE Usuario_Condominio_Rol (
+CREATE TABLE UsuarioCondominioRol (
     IdUsuario INT NOT NULL,
     IdCondominio INT NOT NULL,
     Rol TINYINT NOT NULL, -- 1: SuperAdmin, 2: Administrador, 3: Propietario, 4: Inquilino
@@ -64,7 +64,7 @@ CREATE TABLE Propiedad (
 -- =============================================================================
 -- 5. TABLA: GASTO_CONDOMINIO (EGRESOS MENSUALES)
 -- =============================================================================
-CREATE TABLE Gasto_Condominio (
+CREATE TABLE GastoCondominio (
     IdGasto INT AUTO_INCREMENT PRIMARY KEY,
     IdCondominio INT NOT NULL,
     Periodo_MesAnio VARCHAR(7) NOT NULL,       -- Formato: 'YYYY-MM'
@@ -78,7 +78,7 @@ CREATE TABLE Gasto_Condominio (
 -- =============================================================================
 -- 6. TABLA: RECIBO_MENSUAL (CUOTAS GENERADAS)
 -- =============================================================================
-CREATE TABLE Recibo_Mensual (
+CREATE TABLE ReciboMensual (
     IdRecibo INT AUTO_INCREMENT PRIMARY KEY,
     IdPropiedad INT NOT NULL,
     Periodicidad_MesAnio VARCHAR(7) NOT NULL,
@@ -96,7 +96,7 @@ CREATE TABLE Recibo_Mensual (
 -- =============================================================================
 -- 7. TABLA DE CONTENCIÓN: PAGO_REPORTADO (VERIFICACIÓN ASÍNCRONA)
 -- =============================================================================
-CREATE TABLE Pago_Reportado (
+CREATE TABLE PagoReportado (
     IdPago BIGINT AUTO_INCREMENT PRIMARY KEY,
     IdCondominio INT NOT NULL,
     IdPropiedad INT NOT NULL,
@@ -122,7 +122,7 @@ CREATE TABLE Pago_Reportado (
 -- =============================================================================
 -- 8. TABLA CONTABLE NÚCLEO: CUENTA_CORRIENTE_PROPIEDAD (LEDGER INMUTABLE)
 -- =============================================================================
-CREATE TABLE Cuenta_Corriente_Propiedad (
+CREATE TABLE CuentaCorrientePropiedad (
     IdMovimiento BIGINT AUTO_INCREMENT PRIMARY KEY,
     IdCondominio INT NOT NULL,
     IdPropiedad INT NOT NULL,
@@ -141,8 +141,8 @@ CREATE TABLE Cuenta_Corriente_Propiedad (
 -- =============================================================================
 CREATE INDEX IX_Condominio_Slug ON Condominio (Subdominio_Slug);
 CREATE INDEX IX_Propiedad_FiltroCore ON Propiedad (IdCondominio, IdPropiedad);
-CREATE INDEX IX_Gasto_Mes ON Gasto_Condominio (IdCondominio, Periodo_MesAnio);
-CREATE INDEX IX_Recibo_Pendiente ON Recibo_Mensual (IdPropiedad, Estatus_Pago);
-CREATE INDEX IX_Pago_BandejaVerificar ON Pago_Reportado (IdCondominio, Estatus_Verificacion, Fecha_Reporte DESC);
-CREATE UNIQUE INDEX UX_Pago_PrevencionFraude ON Pago_Reportado (IdCondominio, Referencia_Bancaria);
-CREATE INDEX IX_Ledger_Historico_Instantaneo ON Cuenta_Corriente_Propiedad (IdCondominio, IdPropiedad, IdMovimiento DESC);
+CREATE INDEX IX_Gasto_Mes ON GastoCondominio (IdCondominio, Periodo_MesAnio);
+CREATE INDEX IX_Recibo_Pendiente ON ReciboMensual (IdPropiedad, Estatus_Pago);
+CREATE INDEX IX_Pago_BandejaVerificar ON PagoReportado (IdCondominio, Estatus_Verificacion, Fecha_Reporte DESC);
+CREATE UNIQUE INDEX UX_Pago_PrevencionFraude ON PagoReportado (IdCondominio, Referencia_Bancaria);
+CREATE INDEX IX_Ledger_Historico_Instantaneo ON CuentaCorrientePropiedad (IdCondominio, IdPropiedad, IdMovimiento DESC);

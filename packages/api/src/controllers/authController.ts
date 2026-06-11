@@ -45,7 +45,7 @@ function rowToUsuario(row: Record<string, unknown>): UsuarioLoginRow {
 }
 
 export class AuthController {
-  constructor(private readonly pool?: AuthPool | null) {}
+  constructor(private readonly pool?: AuthPool | null) { }
 
   async login(req: Request, res: Response): Promise<void> {
     try {
@@ -68,24 +68,31 @@ export class AuthController {
         const found = await usuarioRepo.findByEmail(email);
         usuario = found
           ? {
-              IdUsuario: found.IdUsuario,
-              Nombre: found.Nombre,
-              Apellido: found.Apellido,
-              Email: found.Email,
-              Password_Hash: found.Password_Hash,
-              Estatus: found.Estatus,
-            }
+            IdUsuario: found.IdUsuario,
+            Nombre: found.Nombre,
+            Apellido: found.Apellido,
+            Email: found.Email,
+            Password_Hash: found.Password_Hash,
+            Estatus: found.Estatus,
+          }
           : null;
       }
 
+      // 1. Diagnóstico de memoria o usuario inexistente
       if (!usuario || usuario.Estatus === 0) {
-        res.status(401).json({ error: 'Credenciales inválidas o usuario inactivo' });
+        const modo = this.pool ? 'MariaDB' : 'RAM Local (Falta .env)';
+        res.status(401).json({
+          error: `[DEBUG] Usuario no encontrado. Motor usado: ${modo}. Buscando email: ${email}`
+        });
         return;
       }
 
+      // 2. Diagnóstico de fallo criptográfico
       const isValidPassword = await bcrypt.compare(password, usuario.Password_Hash);
       if (!isValidPassword) {
-        res.status(401).json({ error: 'Credenciales inválidas' });
+        res.status(401).json({
+          error: `[DEBUG] Hash fallido. El hash en la BD para ${email} es: ${usuario.Password_Hash.substring(0, 15)}...`
+        });
         return;
       }
 

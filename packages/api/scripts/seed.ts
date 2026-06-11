@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import { container } from 'tsyringe';
-import { configureDataContainer, DataMode, LocalStore } from '@abitia/data';
+//import { configureDataContainer, DataMode, LocalStore } from '@abitia/data';
+import { configureDataContainer, DataMode } from '@abitia/data';
 import { configureServicesContainer } from '@abitia/services';
 import {
   ICondominioRepository,
@@ -16,11 +17,20 @@ import {
   EstatusVerificacion,
 } from '@abitia/core';
 import { generateTenantToken } from '../src/middleware';
+import dotenv from 'dotenv';
+import path from 'path';
+import bcrypt from 'bcryptjs';
 
-configureDataContainer(DataMode.Local);
+// Cargar variables de entorno del archivo .env
+dotenv.config({ path: path.join(__dirname, '../../../.env') });
+dotenv.config();
+
+// 1. Interruptor dinámico basado en el entorno (Igual que en server.ts)
+const dbMode = (process.env.NODE_ENV === 'production' || process.env.DB_HOST) ? DataMode.MySQL : DataMode.Local;
+
+configureDataContainer(dbMode);
 configureServicesContainer();
 
-const store = container.resolve(LocalStore);
 const cRepo = container.resolve<ICondominioRepository>('ICondominioRepository');
 const uRepo = container.resolve<IUsuarioRepository>('IUsuarioRepository');
 const pRepo = container.resolve<IPropiedadRepository>('IPropiedadRepository');
@@ -29,7 +39,41 @@ const pagoRepo = container.resolve<IPagoReportadoRepository>('IPagoReportadoRepo
 const reciboService = container.resolve<IReciboService>('IReciboService');
 
 async function seed() {
-  store.reset();
+  // 2. Control de persistencia: Solo reseteamos la memoria si estamos en modo Local
+  if (dbMode === DataMode.Local) {
+    // Importación dinámica en caliente, igual que en tu server.ts
+    const { LocalStore } = require('@abitia/data');
+    const store: any = container.resolve(LocalStore);
+    store.reset();
+    console.log('[SEED] Modo Local detectado. Memoria RAM reseteada.');
+  } else {
+    console.log('[SEED] Modo Producción detectado. Inyectando directamente en MariaDB...');
+    const { MySQLConnection } = require('@abitia/data');
+    const mysqlConnection = container.resolve(MySQLConnection);
+    await mysqlConnection.connect({
+      host: process.env.DB_HOST || '127.0.0.1',
+      port: Number(process.env.DB_PORT) || 3306,
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME || 'abitia_db',
+    });
+    console.log('[SEED] Conectado a MariaDB/MySQL.');
+
+    const pool = mysqlConnection.getPoolSafe();
+    if (pool) {
+      await pool.execute('SET FOREIGN_KEY_CHECKS = 0');
+      await pool.execute('TRUNCATE TABLE CuentaCorrientePropiedad');
+      await pool.execute('TRUNCATE TABLE PagoReportado');
+      await pool.execute('TRUNCATE TABLE ReciboMensual');
+      await pool.execute('TRUNCATE TABLE GastoCondominio');
+      await pool.execute('TRUNCATE TABLE Propiedad');
+      await pool.execute('TRUNCATE TABLE UsuarioCondominioRol');
+      await pool.execute('TRUNCATE TABLE Usuario');
+      await pool.execute('TRUNCATE TABLE Condominio');
+      await pool.execute('SET FOREIGN_KEY_CHECKS = 1');
+      console.log('[SEED] Base de datos MariaDB/MySQL vaciada con éxito.');
+    }
+  }
 
   console.log('[SEED] Creando condominio Casa-10...');
   const idCondo = await cRepo.create({
@@ -47,7 +91,7 @@ async function seed() {
     Nombre: 'Admin',
     Apellido: 'Principal',
     Email: 'admin@casa10.com',
-    Password_Hash: 'admin123',
+    Password_Hash: bcrypt.hashSync('admin123', 10), // En producción real esto debería pasar por un hash como bcrypt
     Telefono: null,
     Estatus: 1,
   });
@@ -60,7 +104,7 @@ async function seed() {
     Nombre: 'María',
     Apellido: 'González',
     Email: 'owner@casa10.com',
-    Password_Hash: 'owner123',
+    Password_Hash: bcrypt.hashSync('owner123', 10),
     Telefono: '+58 412 1234567',
     Estatus: 1,
   });

@@ -2,6 +2,13 @@ import 'reflect-metadata';
 import path from 'path'; // <-- Importación del módulo nativo para rutas
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import dotenv from 'dotenv';
+import bcrypt from 'bcryptjs';
+
+// Cargar variables de entorno del archivo .env
+dotenv.config({ path: path.join(__dirname, '../../../.env') });
+dotenv.config();
+
 import { configureDataContainer, DataMode, MySQLConnection } from '@abitia/data';
 import { configureServicesContainer } from '@abitia/services';
 import { container } from 'tsyringe';
@@ -14,8 +21,22 @@ import publicRoutes from './routes/public';
 import createAuthRoutes from './routes/auth';
 import tenantRoutes from './routes/index';
 
-configureDataContainer(DataMode.Local);
+const dbMode = (process.env.NODE_ENV === 'production' || process.env.DB_HOST) ? DataMode.MySQL : DataMode.Local;
+configureDataContainer(dbMode);
 configureServicesContainer();
+
+const mysqlConnection = container.resolve(MySQLConnection);
+if (dbMode === DataMode.MySQL) {
+  mysqlConnection.connect({
+    host: process.env.DB_HOST || '127.0.0.1',
+    port: Number(process.env.DB_PORT) || 3306,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'abitia_db',
+  }).catch((err) => {
+    console.error('[Abitia API] Error al conectar a MariaDB/MySQL:', err);
+  });
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -35,7 +56,6 @@ app.use(express.static(path.join(__dirname, '../public'), { index: false }));
 // ============================================================================
 app.use(hstsMiddleware);
 
-const mysqlConnection = container.resolve(MySQLConnection);
 app.use(multiTenantMiddleware(mysqlConnection));
 
 // ============================================================================
@@ -84,9 +104,25 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 // Dev seed route — crea datos de prueba para la bandeja de pagos
 app.post('/api/seed', async (_req, res) => {
   try {
-    const { LocalStore } = require('@abitia/data');
-    const store: any = container.resolve(LocalStore);
-    store.reset();
+    if (dbMode === DataMode.Local) {
+      const { LocalStore } = require('@abitia/data');
+      const store: any = container.resolve(LocalStore);
+      store.reset();
+    } else {
+      const pool = mysqlConnection.getPoolSafe();
+      if (pool) {
+        await pool.execute('SET FOREIGN_KEY_CHECKS = 0');
+        await pool.execute('TRUNCATE TABLE CuentaCorrientePropiedad');
+        await pool.execute('TRUNCATE TABLE PagoReportado');
+        await pool.execute('TRUNCATE TABLE ReciboMensual');
+        await pool.execute('TRUNCATE TABLE GastoCondominio');
+        await pool.execute('TRUNCATE TABLE Propiedad');
+        await pool.execute('TRUNCATE TABLE UsuarioCondominioRol');
+        await pool.execute('TRUNCATE TABLE Usuario');
+        await pool.execute('TRUNCATE TABLE Condominio');
+        await pool.execute('SET FOREIGN_KEY_CHECKS = 1');
+      }
+    }
 
     const cRepo = container.resolve('ICondominioRepository') as any;
     const uRepo = container.resolve('IUsuarioRepository') as any;
@@ -103,13 +139,13 @@ app.post('/api/seed', async (_req, res) => {
 
     const idAdmin = await uRepo.create({
       Nombre: 'Admin', Apellido: 'Principal', Email: 'admin@casa10.com',
-      Password_Hash: 'admin123', Telefono: null, Estatus: 1,
+      Password_Hash: bcrypt.hashSync('admin123', 10), Telefono: null, Estatus: 1,
     });
     await uRepo.assignRole(idCondo, idAdmin, 2);
 
     const idOwner = await uRepo.create({
       Nombre: 'Maria', Apellido: 'Gonzalez', Email: 'owner@casa10.com',
-      Password_Hash: 'owner123', Telefono: '+58 412 1234567', Estatus: 1,
+      Password_Hash: bcrypt.hashSync('owner123', 10), Telefono: '+58 412 1234567', Estatus: 1,
     });
     await uRepo.assignRole(idCondo, idOwner, 3);
 
