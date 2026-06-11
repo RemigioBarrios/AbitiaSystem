@@ -78,21 +78,16 @@ export class AuthController {
           : null;
       }
 
-      // 1. Diagnóstico de memoria o usuario inexistente
+      // Usuario no encontrado o inactivo
       if (!usuario || usuario.Estatus === 0) {
-        const modo = this.pool ? 'MariaDB' : 'RAM Local (Falta .env)';
-        res.status(401).json({
-          error: `[DEBUG] Usuario no encontrado. Motor usado: ${modo}. Buscando email: ${email}`
-        });
+        res.status(401).json({ error: 'Credenciales inválidas o usuario inactivo' });
         return;
       }
 
-      // 2. Diagnóstico de fallo criptográfico
+      // Verificación de contraseña
       const isValidPassword = await bcrypt.compare(password, usuario.Password_Hash);
       if (!isValidPassword) {
-        res.status(401).json({
-          error: `[DEBUG] Hash fallido. El hash en la BD para ${email} es: ${usuario.Password_Hash.substring(0, 15)}...`
-        });
+        res.status(401).json({ error: 'Credenciales inválidas' });
         return;
       }
 

@@ -4,21 +4,35 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 
-// Carga las variables de entorno si dotenv está disponible
+// Carga variables de entorno: busca .env.production o .env en directorios ascendentes
 try {
   const fs = require('fs');
-  // Detectar si está ejecutándose desde la carpeta de distribución (producción)
-  const isProdDir = __dirname.replace(/\\/g, '/').split('/').pop() === 'dist';
-  const envFile = (process.env.NODE_ENV === 'production' || isProdDir) ? '.env.production' : '.env';
-  const envPath = path.join(__dirname, '../../../', envFile);
-  
-  if (fs.existsSync(envPath)) {
-    require('dotenv').config({ path: envPath });
-  } else {
-    require('dotenv').config();
+  // Intentar múltiples rutas relativas al archivo compilado
+  const searchDirs = [
+    path.join(__dirname, '../'),         // packages/api/ (cuando corre desde dist/)
+    path.join(__dirname, '../../'),      // packages/ 
+    path.join(__dirname, '../../../'),   // raíz del proyecto (AbitiaCore/)
+    process.cwd(),                       // directorio de trabajo actual
+  ];
+  const candidates = ['env.production', '.env.production', '.env'];
+  let loaded = false;
+  for (const dir of searchDirs) {
+    if (loaded) break;
+    for (const file of candidates) {
+      const p = path.join(dir, file);
+      if (fs.existsSync(p)) {
+        require('dotenv').config({ path: p });
+        console.log(`[Abitia] Entorno cargado desde: ${p}`);
+        loaded = true;
+        break;
+      }
+    }
+  }
+  if (!loaded) {
+    require('dotenv').config(); // Fallback al directorio de trabajo
   }
 } catch (err) {
-  // Ignorar pacíficamente si dotenv no está instalado (por ejemplo, en producción pura)
+  // Ignorar si dotenv no está disponible — las variables del sistema operativo serán usadas
 }
 
 import { configureDataContainer, DataMode, MySQLConnection } from '@abitia/data';
